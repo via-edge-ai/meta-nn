@@ -15,7 +15,7 @@
 
 # This file is directly adapted from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/examples/python/label_image.py according to explanations here: https://www.tensorflow.org/lite/guide/python
 
-# We just added 1 flag: --use_gpu to use the gpu delegate. If none is specified, cpu will be used.
+# We just added 2 flags: --use_gpu and --use_armnn to use either the gpu or the armnn delegate. If none is specified, cpu will be used.
 
 """label_image for tflite."""
 
@@ -66,10 +66,14 @@ if __name__ == '__main__':
   req = parser.add_mutually_exclusive_group(required=False)
   req.add_argument(
       '--use_gpu', action='store_true', help='use gpu backend')
+  req.add_argument(
+      '--use_armnn', action='store_true', help='use armnn backend')
   args = parser.parse_args()
 
   if args.use_gpu:
     delegate = [tflite.load_delegate('gpu_external_delegate.so')]
+  elif args.use_armnn:
+    delegate = [tflite.load_delegate('libarmnnDelegate.so.24', {"backends":"GpuAcc,CpuAcc"})]
   else:
     delegate=None
 

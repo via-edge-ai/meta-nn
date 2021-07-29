@@ -1,0 +1,33 @@
+From 9055c6ef719b089bfc7b65be71f8a1ca4af29d2b Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Wed, 25 Nov 2020 14:45:35 +0000
+Subject: [PATCH] fix bd compilation issue
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ cmake/GlobalConfig.cmake | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cmake/GlobalConfig.cmake b/cmake/GlobalConfig.cmake
+index 8a7c9a182..6570e5914 100644
+--- a/cmake/GlobalConfig.cmake
++++ b/cmake/GlobalConfig.cmake
+@@ -143,13 +143,13 @@ if (NOT BUILD_PIPE_ONLY)
+   endif()
+ endif()
+ 
+-if (NOT BUILD_PIPE_ONLY)
++if (BUILD_PIPE_ONLY)
+   # cxxopts (Alternative to boost::program_options)
+   find_path(CXXOPTS_INCLUDE cxxopts/cxxopts.hpp PATHS third-party NO_CMAKE_FIND_ROOT_PATH)
+   include_directories(SYSTEM "${CXXOPTS_INCLUDE}")
+ endif()
+ 
+-if (NOT BUILD_PIPE_ONLY)
++if (BUILD_PIPE_ONLY)
+   # ghc (Alternative to boost::filesystem)
+   find_path(GHC_INCLUDE ghc/filesystem.hpp PATHS third-party NO_CMAKE_FIND_ROOT_PATH)
+   include_directories(SYSTEM "${GHC_INCLUDE}")
+-- 
+2.17.1
+
