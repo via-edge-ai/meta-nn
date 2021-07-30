@@ -1,0 +1,35 @@
+include: 'http://build3.baylibre.com/ci/master/gitlab-ci-template.yml'
+
+stages:
+   - build
+   - deploy
+
+build_pages:
+  stage: build
+  image: python:latest
+  script:
+  - wget --header="JOB-TOKEN:$CI_JOB_TOKEN" https://gitlab.com/api/v4/projects/8866061/packages/generic/intersphinx/1.0.0/objects.inv -O docs/bsp-objects.inv
+  - pip install -U sphinx sphinx-rtd-theme sphinx-prompt
+  - sphinx-build -W -n -b html docs public
+  artifacts:
+    paths:
+    - public
+  only:
+    changes:
+    - docs/**/*
+
+pages:
+  stage: deploy
+  image: python:latest
+  script:
+  - wget --header="JOB-TOKEN:$CI_JOB_TOKEN" https://gitlab.com/api/v4/projects/8866061/packages/generic/intersphinx/1.0.0/objects.inv -O docs/bsp-objects.inv
+  - pip install -U sphinx sphinx-rtd-theme sphinx-prompt
+  - sphinx-build -b html docs public
+  artifacts:
+    paths:
+    - public
+  only:
+     refs:
+     - dunfell
+     changes:
+     - docs/**/*
