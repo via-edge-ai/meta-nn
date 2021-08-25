@@ -22,13 +22,14 @@ SRC_URI += " \
            file://mobilenet_v2_1.0_224_quant.tflite \
           "
 
-DEPENDS += " virtual/opencl "
+DEPENDS += "virtual/libegl"
+
 RDEPENDS_${PN} += " \
     python3 \
     python3-pip \
     python3-pillow \
     libatomic \
-    opencl \
+    opencl-icd-loader \
 "
 
 export PYTHON_BIN_PATH="${PYTHON}"
