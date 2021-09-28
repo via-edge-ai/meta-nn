@@ -21,4 +21,5 @@ BBLAYERS ?= " \
   ##OEROOT##/../meta-rity/meta-rity-demo \
   ##OEROOT##/../meta-qt5 \
   ##OEROOT##/../meta-nn \
+  ##OEROOT##/../meta-tensorflow \
   "
