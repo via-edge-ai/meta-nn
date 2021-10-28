@@ -15,16 +15,18 @@
 
 # This file is directly adapted from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/examples/python/label_image.py according to explanations here: https://www.tensorflow.org/lite/guide/python
 
-# We just added 2 flags: --use_gpu and --use_armnn to use either the gpu or the armnn delegate. If none is specified, cpu will be used.
+# We just added 3 flags: --use_gpu, --use_armnn and --use_nnapi to use either the gpu, the armnn or the nnapi delegate. If none is specified, cpu will be used.
 
 """label_image for tflite."""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from os import path
 
 import argparse
 import time
+import sys
 
 import numpy as np
 from PIL import Image
@@ -68,12 +70,20 @@ if __name__ == '__main__':
       '--use_gpu', action='store_true', help='use gpu backend')
   req.add_argument(
       '--use_armnn', action='store_true', help='use armnn backend')
+  req.add_argument(
+          '--use_nnapi', action='store_true', help='use nnapi backend')
   args = parser.parse_args()
 
   if args.use_gpu:
     delegate = [tflite.load_delegate('gpu_external_delegate.so')]
   elif args.use_armnn:
     delegate = [tflite.load_delegate('libarmnnDelegate.so.24', {"backends":"GpuAcc,CpuAcc"})]
+  elif args.use_nnapi:
+    if path.exists("/usr/lib/nnapi_external_delegate.so") or path.exists("/usr/lib64/nnapi_external_delegate.so"):
+      delegate = [tflite.load_delegate('nnapi_external_delegate.so')]
+    else:
+      print("nnapi_external_delegate.so: file not found")
+      sys.exit(1)
   else:
     delegate=None
 

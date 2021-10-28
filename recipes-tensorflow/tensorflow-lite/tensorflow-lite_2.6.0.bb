@@ -16,6 +16,7 @@ SRC_URI += " \
            file://cc_config.bzl.tpl \
            file://yocto_compiler_configure.bzl \
            file://0001-add-external-gpu-delegate.patch \
+           file://0001-add-external-nnapi-delegate.patch \
            file://grace_hopper.jpg \
            file://label_image.py \
            file://labels.txt \
@@ -100,6 +101,7 @@ do_compile () {
         --copt -DTF_LITE_DISABLE_X86_NEON --copt -DCL_DELEGATE_NO_GL --copt -DMESA_EGL_NO_X11_HEADERS \
         //tensorflow/lite/tools/benchmark:benchmark_model \
         //tensorflow/lite/delegates/utils/gpu_external_delegate:gpu_external_delegate.so \
+        //tensorflow/lite/delegates/utils/nnapi_external_delegate:nnapi_external_delegate.so \
         //tensorflow/lite:libtensorflowlite.so
 
     # build pip package
@@ -118,6 +120,10 @@ do_install() {
 
     install -m 644 ${S}/bazel-bin/tensorflow/lite/delegates/utils/gpu_external_delegate/gpu_external_delegate.so \
         ${D}${libdir}
+
+    install -m 644 ${S}/bazel-bin/tensorflow/lite/delegates/utils/nnapi_external_delegate/nnapi_external_delegate.so \
+        ${D}${libdir}
+
 
     #install benchmark_model binary
     install -d ${D}${bindir}
