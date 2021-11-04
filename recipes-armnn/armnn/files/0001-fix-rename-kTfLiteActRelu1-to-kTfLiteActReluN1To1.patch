@@ -1,0 +1,26 @@
+From 8691be70483c9a1ffeb37eb3ff9386fa8c6888fe Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Thu, 4 Nov 2021 15:24:49 +0100
+Subject: [PATCH] fix: rename kTfLiteActRelu1 to kTfLiteActReluN1To1
+
+tensorflow as renamed kTfLiteActRelu1 to kTfLiteActReluN1To1 after
+2.3.1 but armnn 20.08 was tested upstream against 2.3.1 so fix it here
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ delegate/src/DelegateUtils.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/delegate/src/DelegateUtils.hpp b/delegate/src/DelegateUtils.hpp
+index 2d1651842..a1a5e0cd5 100644
+--- a/delegate/src/DelegateUtils.hpp
++++ b/delegate/src/DelegateUtils.hpp
+@@ -294,7 +294,7 @@ TfLiteStatus FusedActivation(TfLiteContext* tfLiteContext,
+             activationDesc.m_Function = armnn::ActivationFunction::ReLu;
+             break;
+         }
+-        case kTfLiteActRelu1:
++        case kTfLiteActReluN1To1:
+         {
+             activationDesc.m_Function = armnn::ActivationFunction::BoundedReLu;
+             activationDesc.m_A = 1.0f;
