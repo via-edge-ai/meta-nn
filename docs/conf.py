@@ -11,8 +11,8 @@ copyright = 'Copyright 2021 MediaTek Inc. Copyright 2020-2021 BayLibre, SAS'
 author = 'MediaTek Inc. and BayLibre, SAS'
 
 # The full version, including alpha/beta/rc tags
-release = 'rity/hardknott'
-release_codename = 'hardknott'
+release = 'rity/honister'
+release_codename = 'honister'
 
 # -- General configuration ---------------------------------------------------
 
