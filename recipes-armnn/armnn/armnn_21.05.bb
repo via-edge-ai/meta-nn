@@ -28,7 +28,7 @@ DEPENDS += " \
     tensorflow-lite \
 "
 
-RDEPENDS_${PN} = " arm-compute-library "
+RDEPENDS:${PN} = " arm-compute-library "
 
 TESTVECS_INSTALL_DIR = "${datadir}/arm/armnn"
 
@@ -44,7 +44,7 @@ EXTRA_OECMAKE += " \
 
 EXTRA_OEMAKE += "'LIBS=${LIBS}' 'CXX=${CXX}' 'CC=${CC}' 'AR=${AR}' 'CXXFLAGS=${CXXFLAGS}' 'CFLAGS=${CFLAGS}'"
 
-do_install_append() {
+do_install:append() {
     install -d ${D}${includedir}/armnnUtils
     install -m 0555 ${S}/src/armnnUtils/*.hpp ${D}${includedir}/armnnUtils
 
@@ -56,7 +56,7 @@ do_install_append() {
 
 }
 
-FILES_${PN} += "${TESTVECS_INSTALL_DIR} /usr/share/armnn/*"
+FILES:${PN} += "${TESTVECS_INSTALL_DIR} /usr/share/armnn/*"
 
-FILES_${PN}-dev += "${libdir}/cmake/* ${libdir}/*.cmake"
-INSANE_SKIP_${PN}-dev = "dev-elf"
+FILES:${PN}-dev += "${libdir}/cmake/* ${libdir}/*.cmake"
+INSANE_SKIP:${PN}-dev = "dev-elf"

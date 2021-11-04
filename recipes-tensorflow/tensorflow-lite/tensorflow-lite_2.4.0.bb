@@ -1,6 +1,6 @@
 require  recipes-framework/tensorflow/tensorflow.inc
 
-FILESEXTRAPATHS_prepend = "${THISDIR}/../../../meta-tensorflow/recipes-framework/tensorflow/files/:"
+FILESEXTRAPATHS:prepend = "${THISDIR}/../../../meta-tensorflow/recipes-framework/tensorflow/files/:"
 
 SRC_URI += " \
            file://0001-add-yocto-toolchain-to-support-cross-compiling.patch \
@@ -24,7 +24,7 @@ SRC_URI += " \
 
 DEPENDS += "virtual/libegl"
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     python3 \
     python3-pip \
     python3-pillow \
@@ -37,7 +37,7 @@ export PYTHON_LIB_PATH="${STAGING_LIBDIR_NATIVE}/${PYTHON_DIR}/site-packages"
 
 export CROSSTOOL_PYTHON_INCLUDE_PATH="${STAGING_INCDIR}/python${PYTHON_BASEVERSION}${PYTHON_ABI}"
 
-do_configure_append () {
+do_configure:append () {
     if [ ! -e ${CROSSTOOL_PYTHON_INCLUDE_PATH}/pyconfig-target.h ];then
         mv ${CROSSTOOL_PYTHON_INCLUDE_PATH}/pyconfig.h ${CROSSTOOL_PYTHON_INCLUDE_PATH}/pyconfig-target.h
     fi
@@ -150,15 +150,15 @@ do_install() {
     install -m 0644 ${WORKDIR}/*.tflite ${D}/home/root/label_image/
 }
 
-INSANE_SKIP_${PN} += "dev-so \
+INSANE_SKIP:${PN} += "dev-so \
                       already-stripped \
                      "
 
 SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
-FILES_${PN} += "${libdir} /home/root/*"
+FILES:${PN} += "${libdir} /home/root/*"
 
 inherit siteinfo unsupportarch
 python __anonymous() {

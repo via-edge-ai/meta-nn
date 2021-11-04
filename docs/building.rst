@@ -30,8 +30,8 @@ Adding packages to the image
 
 .. code::
 
-   IMAGE_INSTALL_append = " tensorflow-lite "
-   IMAGE_INSTALL_append = " armnn "
+   IMAGE_INSTALL:append = " tensorflow-lite "
+   IMAGE_INSTALL:append = " armnn "
 
 Building and flashing the image
 -------------------------------

@@ -12,7 +12,7 @@ SRC_URI = "git://github.com/ARM-software/ComputeLibrary.git;tag=v${PV};name=arm-
            file://0002-workaround-for-compiler-error-in-gcc9.2-and-9.3.patch \
            "
 
-EXTRA_OESCONS_aarch64 = "arch=arm64-v8a extra_cxx_flags="-fPIC" Werror=0 asserts=0 debug=0 benchmark_tests=0 validation_tests=0 embed_kernels=1 openmp=1 opencl=1 neon=1 opencl=1 set_soname=1"
+EXTRA_OESCONS:aarch64 = "arch=arm64-v8a extra_cxx_flags="-fPIC" Werror=0 asserts=0 debug=0 benchmark_tests=0 validation_tests=0 embed_kernels=1 openmp=1 opencl=1 neon=1 opencl=1 set_soname=1"
 
 S = "${WORKDIR}/git"
 
@@ -43,10 +43,10 @@ do_install() {
     cp $CP_ARGS ${S}/src/core/CL ${D}${includedir}/src/core
 }
 
-INSANE_SKIP_${PN} = "ldflags"
-INSANE_SKIP_${PN}-dev = "dev-elf ldflags"
+INSANE_SKIP:${PN} = "ldflags"
+INSANE_SKIP:${PN}-dev = "dev-elf ldflags"
 
-FILES_${PN}-source = "${datadir}/${BPN}"
-INSANE_SKIP_${PN}-source = "ldflags libdir staticdev"
+FILES:${PN}-source = "${datadir}/${BPN}"
+INSANE_SKIP:${PN}-source = "ldflags libdir staticdev"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
