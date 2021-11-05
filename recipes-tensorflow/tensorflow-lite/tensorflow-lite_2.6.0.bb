@@ -9,12 +9,13 @@ SRC_URI += " \
            file://0001-label_image.lite-tweak-default-model-location.patch \
            file://0001-CheckFeatureOrDie-use-warning-to-avoid-die.patch \
            file://0001-support-32-bit-x64-and-arm-for-yocto.patch \
+           file://0001-Revert-set-distinct_host_configuration-false-by-defa.patch \
+           file://0001-fix-default-Bazel-toolchain-not-work.patch \
            file://BUILD.in \
            file://BUILD.yocto_compiler \
            file://cc_config.bzl.tpl \
            file://yocto_compiler_configure.bzl \
            file://0001-add-external-gpu-delegate.patch \
-           file://0001-Add-support-of-bazel-args.patch \
            file://grace_hopper.jpg \
            file://label_image.py \
            file://labels.txt \
@@ -28,6 +29,7 @@ RDEPENDS:${PN} += " \
     python3 \
     python3-pip \
     python3-pillow \
+    python3-numpy \
     libatomic \
     opencl-icd-loader \
 "
@@ -88,8 +90,9 @@ export CUSTOM_BAZEL_FLAGS = " \
 
 do_compile () {
     export CT_NAME=$(echo ${HOST_PREFIX} | rev | cut -c 2- | rev)
-        export CROSSTOOL_PYTHON_INCLUDE_PATH="${STAGING_INCDIR}/python${PYTHON_BASEVERSION}${PYTHON_ABI}"
+    export CROSSTOOL_PYTHON_INCLUDE_PATH="${STAGING_INCDIR}/python${PYTHON_BASEVERSION}${PYTHON_ABI}"
     unset CC
+    export BAZEL_STARTUP_OPTIONS="${BAZEL_ARGS}"
 
     # build tensorflowlite, external gpu/nanpi delegate and benchmark_model
     ${BAZEL} build \
@@ -101,6 +104,10 @@ do_compile () {
 
     # build pip package
     ${S}/tensorflow/lite/tools/pip_package/build_pip_package_with_bazel.sh
+
+    # recipes-framework/tensorflow/tensorflow.inc define a do_compile:append task that is not relevant here
+    # and throws an error, so skip the do_compile_append stuff by exiting here
+    exit 0;
 }
 
 do_install() {
@@ -130,7 +137,9 @@ do_install() {
         install -m 0644 "${file}" "${D}${includedir}/tensorflow/${file}"
     done
 
-    cp -r ${WORKDIR}/bazel/output_base/external/eigen_archive/ ${D}/${includedir}/eigen
+    install -d ${D}${includedir}/eigen
+    cp -r ${WORKDIR}/bazel/output_base/external/eigen_archive/Eigen ${D}/${includedir}/eigen/
+    cp -r ${WORKDIR}/bazel/output_base/external/eigen_archive/unsupported ${D}/${includedir}/eigen/
     cp -r ${WORKDIR}/bazel/output_base/external/gemmlowp/ ${D}/${includedir}/
     cp -r ${S}//third_party/ ${D}/${includedir}
 
