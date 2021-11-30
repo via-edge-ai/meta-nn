@@ -1,0 +1,76 @@
+From 229d7988819e1c92000a84892f2d06be9e66bd1e Mon Sep 17 00:00:00 2001
+From: kidd <kidd-kw.chen@mediatek.com>
+Date: Mon, 22 Nov 2021 14:42:22 +0800
+Subject: [PATCH] libtextclassifier: add Makefiles
+
+The Makefiles are based on file BUILD.gn and currently only enable hash module
+
+Signed-off-by: kidd <kidd-kw.chen@mediatek.com>
+---
+ Makefile            | 34 ++++++++++++++++++++++++++++++++++
+ utils/hash/Makefile | 10 ++++++++++
+ 2 files changed, 44 insertions(+)
+ create mode 100644 Makefile
+ create mode 100644 utils/hash/Makefile
+
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 0000000..ebbc9cb
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,34 @@
++ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
++
++TARGET := libtextclassifier.so
++OUT := $(ROOT_DIR)/out
++export OUT
++
++LIBHASH_SRC := $(ROOT_DIR)/utils/hash/
++SUBDIRS := $(LIBHASH_SRC)
++export LIBHASH_SRC
++
++FLAGS = -Wall -Werror -Wextra -std=c++17 -fvisibility=default -Wno-inconsistent-missing-override -Wno-sign-compare --no-undefined -Wno-reorder
++INCLUDES = -I $(ROOT_DIR)/
++#DEFINES  = -D ZLIB_CONST -D TC3_DISABLE_LUA -D TC3_CALENDAR_ICU -D TC3_UNILIB_ICU
++CPPFLAGS := $(FLAGS) $(INCLUDES)
++export CPPFLAGS
++
++
++
++.PHONY: all clean install $(SUBDIRS)
++
++all: $(TARGET)
++
++$(TARGET): $(SUBDIRS)
++	$(CC) -Wl,--whole-archive $(OUT)/libhash.a -Wl,--no-whole-archive -shared -o $(OUT)/$@
++
++$(SUBDIRS):
++	mkdir -p $(OUT)
++	$(MAKE) -C $@ $(MAKECMDGOALS)
++
++install:
++	mkdir -p $(DESTDIR)/$(LIBDIR)/
++	cp $(OUT)/*.so $(DESTDIR)/$(LIBDIR)/
++
++clean: $(SUBDIRS)
+\ No newline at end of file
+diff --git a/utils/hash/Makefile b/utils/hash/Makefile
+new file mode 100644
+index 0000000..92018df
+--- /dev/null
++++ b/utils/hash/Makefile
+@@ -0,0 +1,10 @@
++SRC := farmhash.cc
++
++OBJECTS := $(SRC:.cc=.o)
++TARGET := $(OUT)/libhash.a
++
++$(TARGET): $(OBJECTS)
++	$(AR) rcs $@ $^
++
++clean:
++	rm -rf $(OBJECTS) $(TARGET)
+\ No newline at end of file
+--
+2.18.0
+

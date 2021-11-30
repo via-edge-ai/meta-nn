@@ -45,6 +45,7 @@ SRC_URI = " \
     file://0006-libnnapi-support-Makefile-install-missing-hidl-heade.patch \
     file://0007-libnnapi-support-Makefile-install-missing-binder-hea.patch \
     file://0008-libnnapi-support-add-missing-generated-files.patch \
+    file://libnnapi-support-add-extern-c.patch \
     "
 
 S = "${WORKDIR}/git"

@@ -48,3 +48,31 @@ Inside the ``build/conf/local.conf`` file:
 Using NNAPI
 -----------
 NNAPI is used as a tensorflow-lite delegate. To use it, please refer to the :doc:`tensorflow-lite` page.
+
+Testing NNAPI
+--------------
+NNAPI provides the Compatibility Test Suite (CTS) to verify the correct functioning of a vendor HAL via the NNAPI public interface (``ANeuralNetworks_*``).
+
+.. code::
+
+    IMAGE_INSTALL_append = " nnapi-cts "
+
+Run CTS
+^^^^^^^
+To run the cts test suite, make sure it is installed. It should be installed by default. If not you can install with the following inside your local.conf:
+
+.. code::
+
+    IMAGE_INSTALL_append = " nnapi-cts "
+
+On the target, run the following
+
+.. prompt:: bash #
+
+    ulimit -S -n 5120
+    cd /usr/bin/
+    ./nnapi-cts --gtest_output=json:/home/root/
+
+.. note::
+    Before launching CTS, please increase per process open files limit on Linux by command: ``ulimit -S -n 5120``.
+    If using default open files limit (1024),  you might get the error: ``Failed to clone native_handle in hidl_handle`` when running CTS.

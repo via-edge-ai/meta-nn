@@ -11,6 +11,7 @@ SRC_URI += "git://gitlab.com/mediatek/aiot/team-baylibre/xtensa_ann.git;protocol
            file://0002-xtensa-ann-add-wrapper-for-nnapi.patch \
            file://0003-xtensa-ann-add-Makefile.patch \
            file://0001-xtensa_driver-concat-skip-optimization-to-avoid-segf.patch \
+           file://0001-xtensa-ann-fix-link-issue.patch \
            "
 
 S = "${WORKDIR}/git"

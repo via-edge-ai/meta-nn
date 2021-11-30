@@ -22,6 +22,7 @@ SRC_URI = "git://github.com/ARM-software/android-nn-driver.git;branch=${BRANCH} 
            file://0003-add-missing-cfloat-include.patch \
            file://0004-add-Makefile.patch \
            file://0001-add-gpu-tuning-file-support.patch \
+           file://0001-android-nn-driver-link-libarmnnSerializer.patch \
            file://0001-replace-steady_clock-by-high_resolution_clock.patch \
            file://0001-add-missing-fcntl-include.patch \
            file://0001-add-missing-float-include.patch \

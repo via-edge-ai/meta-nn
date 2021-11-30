@@ -10,7 +10,7 @@ PROVIDES = "virtual/libvendor-nn-hal"
 RPROVIDES:${PN} = "libvendor-nn-hal"
 
 SRCREV_FORMAT = "prebuilts"
-SRCREV_prebuilts = "e9eee993dbbae68acb3c6454e2f1764de998020f"
+SRCREV_prebuilts = "f9415597b98788f48ba8b86b56d070a3f833e636"
 
 SRC_URI = "git://gitlab.com/mediatek/aiot/nda-cadence/prebuilts.git;protocol=https;branch=main;destsuffix=prebuilts;name=prebuilts"
 

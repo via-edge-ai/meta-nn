@@ -8,15 +8,15 @@ BRANCH_NAME = "release-R85-13310.B"
 
 SRC_URI = " \
     git://chromium.googlesource.com/chromiumos/third_party/libtextclassifier;protocol=https;branch=${BRANCH_NAME} \
+    file://0001-libtextclassifier-add-Makefiles.patch \
     "
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-do_compile() {
-}
-
 do_install() {
+    oe_runmake install DESTDIR=${D} LIBDIR=${libdir}
+
     install -d ${D}${includedir}
     install -d ${D}${includedir}/libtextclassifier
     cd ${S}
@@ -26,4 +26,6 @@ do_install() {
     done
 }
 
-FILES:${PN} = "${includedir}"
+SOLIBS = ".so"
+FILES_SOLIBSDEV = ""
+FILES:${PN} = "${libdir}/* ${includedir}"
