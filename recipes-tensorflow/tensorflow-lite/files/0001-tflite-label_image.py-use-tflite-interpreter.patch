@@ -1,0 +1,32 @@
+From 6c7ec43e36e38f2bee30e8b8cdb35c1a1d094dd0 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Fri, 10 Dec 2021 09:50:14 +0100
+Subject: [PATCH] tflite: label_image.py: use tflite interpreter
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ tensorflow/lite/examples/python/label_image.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tensorflow/lite/examples/python/label_image.py b/tensorflow/lite/examples/python/label_image.py
+index fee716783ab..72287022296 100644
+--- a/tensorflow/lite/examples/python/label_image.py
++++ b/tensorflow/lite/examples/python/label_image.py
+@@ -23,7 +23,7 @@ import time
+ 
+ import numpy as np
+ from PIL import Image
+-import tensorflow as tf
++import tflite_runtime.interpreter as tflite
+ 
+ 
+ def load_labels(filename):
+@@ -60,7 +60,7 @@ if __name__ == '__main__':
+       '--num_threads', default=None, type=int, help='number of threads')
+   args = parser.parse_args()
+ 
+-  interpreter = tf.lite.Interpreter(
++  interpreter = tflite.Interpreter(
+       model_path=args.model_file, num_threads=args.num_threads)
+   interpreter.allocate_tensors()
+ 

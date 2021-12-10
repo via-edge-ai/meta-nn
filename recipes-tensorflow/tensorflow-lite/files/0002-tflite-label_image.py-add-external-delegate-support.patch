@@ -1,0 +1,71 @@
+From 781b044d8c681be1419cc4033091b1d167d229b5 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Fri, 10 Dec 2021 09:54:51 +0100
+Subject: [PATCH] tflite: label_image.py: add external delegate support
+
+add external delegate support for:
+    * nnapi
+    * gpu
+    * armnn
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ .../lite/examples/python/label_image.py       | 34 ++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/tensorflow/lite/examples/python/label_image.py b/tensorflow/lite/examples/python/label_image.py
+index 72287022296..bc995bff8d1 100644
+--- a/tensorflow/lite/examples/python/label_image.py
++++ b/tensorflow/lite/examples/python/label_image.py
+@@ -17,9 +17,11 @@
+ from __future__ import absolute_import
+ from __future__ import division
+ from __future__ import print_function
++from os import path
+ 
+ import argparse
+ import time
++import sys
+ 
+ import numpy as np
+ from PIL import Image
+@@ -58,10 +60,38 @@ if __name__ == '__main__':
+       help='input standard deviation')
+   parser.add_argument(
+       '--num_threads', default=None, type=int, help='number of threads')
++  req = parser.add_mutually_exclusive_group(required=False)
++  req.add_argument(
++      '--use_gpu', action='store_true', help='use gpu backend')
++  req.add_argument(
++      '--use_armnn', action='store_true', help='use armnn backend')
++  req.add_argument(
++          '--use_nnapi', action='store_true', help='use nnapi backend')
+   args = parser.parse_args()
+ 
++  if args.use_gpu:
++    if path.exists("/usr/lib/gpu_external_delegate.so") or path.exists("/usr/lib64/gpu_external_delegate.so"):
++      delegate = [tflite.load_delegate('gpu_external_delegate.so')]
++    else:
++      print("gpu_external_delegate.so: file not found")
++      sys.exit(1)
++  elif args.use_armnn:
++    if path.exists("/usr/lib/libarmnnDelegate.so.24") or path.exists("/usr/lib64/libarmnnDelegate.so.24"):
++      delegate = [tflite.load_delegate('libarmnnDelegate.so.24')]
++    else:
++      print("libarmnnDelegate.so.24: file not found")
++      sys.exit(1)
++  elif args.use_nnapi:
++    if path.exists("/usr/lib/nnapi_external_delegate.so") or path.exists("/usr/lib64/nnapi_external_delegate.so"):
++      delegate = [tflite.load_delegate('nnapi_external_delegate.so')]
++    else:
++      print("nnapi_external_delegate.so: file not found")
++      sys.exit(1)
++  else:
++    delegate=None
++
+   interpreter = tflite.Interpreter(
+-      model_path=args.model_file, num_threads=args.num_threads)
++      model_path=args.model_file, experimental_delegates=delegate, num_threads=args.num_threads)
+   interpreter.allocate_tensors()
+ 
+   input_details = interpreter.get_input_details()
