@@ -15,7 +15,6 @@ BRANCH_ARMNN = "branches/armnn_${PV_MAJOR}_${PV_MINOR}"
 SRC_URI = "git://github.com/ARM-software/armnn.git;branch=${BRANCH_ARMNN} \
            file://0001-fix-bd-compilation-issue.patch \
            file://0001-search-for-system-opencl-header.patch \
-           file://0001-fix-rename-kTfLiteActRelu1-to-kTfLiteActReluN1To1.patch \
            "
 
 S = "${WORKDIR}/git"

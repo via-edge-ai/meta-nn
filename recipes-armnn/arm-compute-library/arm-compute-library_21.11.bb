@@ -9,7 +9,6 @@ inherit scons
 
 SRC_URI = "git://github.com/ARM-software/ComputeLibrary.git;tag=v${PV};name=arm-compute-library \
            file://0001-enable-yocto-build.patch \
-           file://0002-workaround-for-compiler-error-in-gcc9.2-and-9.3.patch \
            "
 
 EXTRA_OESCONS:aarch64 = "arch=arm64-v8a extra_cxx_flags="-fPIC" Werror=0 asserts=0 debug=0 benchmark_tests=0 validation_tests=0 embed_kernels=1 openmp=1 opencl=1 neon=1 opencl=1 set_soname=1"

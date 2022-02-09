@@ -49,10 +49,10 @@ index 72287022296..bc995bff8d1 100644
 +      print("gpu_external_delegate.so: file not found")
 +      sys.exit(1)
 +  elif args.use_armnn:
-+    if path.exists("/usr/lib/libarmnnDelegate.so.24") or path.exists("/usr/lib64/libarmnnDelegate.so.24"):
-+      delegate = [tflite.load_delegate('libarmnnDelegate.so.24')]
++    if path.exists("/usr/lib/libarmnnDelegate.so.25") or path.exists("/usr/lib64/libarmnnDelegate.so.25"):
++      delegate = [tflite.load_delegate('libarmnnDelegate.so.25')]
 +    else:
-+      print("libarmnnDelegate.so.24: file not found")
++      print("libarmnnDelegate.so.25: file not found")
 +      sys.exit(1)
 +  elif args.use_nnapi:
 +    if path.exists("/usr/lib/nnapi_external_delegate.so") or path.exists("/usr/lib64/nnapi_external_delegate.so"):

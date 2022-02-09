@@ -77,7 +77,7 @@ if __name__ == '__main__':
   if args.use_gpu:
     delegate = [tflite.load_delegate('gpu_external_delegate.so')]
   elif args.use_armnn:
-    delegate = [tflite.load_delegate('libarmnnDelegate.so.24', {"backends":"GpuAcc,CpuAcc"})]
+    delegate = [tflite.load_delegate('libarmnnDelegate.so.25', {"backends":"GpuAcc,CpuAcc"})]
   elif args.use_nnapi:
     if path.exists("/usr/lib/nnapi_external_delegate.so") or path.exists("/usr/lib64/nnapi_external_delegate.so"):
       delegate = [tflite.load_delegate('nnapi_external_delegate.so')]

@@ -43,7 +43,7 @@ To run ``benchmark_model`` with the armnn delegate use the following command:
 
 .. prompt:: bash #
 
-   benchmark_model --external_delegate_path=/usr/lib(64)/libarmnnDelegate.so.24 --external_delegate_options="backends:GpuAcc,CpuAcc" --graph=/usr/share/label_image/mobilenet_v1_1.0_224_quant.tflite --num_runs=1
+   benchmark_model --external_delegate_path=/usr/lib(64)/libarmnnDelegate.so.25 --external_delegate_options="backends:GpuAcc,CpuAcc" --graph=/usr/share/label_image/mobilenet_v1_1.0_224_quant.tflite --num_runs=1
 
 .. note::
-   You should adapt the command depending on whether your system supports multilib or not i.e ``/usr/lib/libarmnnDelegate.so.24`` or ``/usr/lib64/libarmnnDelegate.so.24``
+   You should adapt the command depending on whether your system supports multilib or not i.e ``/usr/lib/libarmnnDelegate.so.25`` or ``/usr/lib64/libarmnnDelegate.so.25``
