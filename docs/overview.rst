@@ -11,6 +11,6 @@ Supported frameworks
         :header: "Frameworks", "Version"
         :widths: 60, 40
 
-        "Tensorflow-lite", 2.4.0
-        "ARMNN", 21.05
-        "OpenCl", 2.0 (libmali r29)
+        "Tensorflow-lite", 2.6.1
+        "ARMNN", 21.11
+        "OpenCl", 2.0 (libmali r32)
