@@ -1,0 +1,25 @@
+From 26e7aa0b45c9291c4099675ff5f4cfaf599ee281 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Thu, 4 Feb 2021 18:11:36 +0100
+Subject: [PATCH 2/3] libfmq: add missing memory include
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ include/fmq/MessageQueue.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/aosp_libs/libfmq/include/fmq/MessageQueue.h b/aosp_libs/libfmq/include/fmq/MessageQueue.h
+index 7ccf0f6..22a740b 100644
+--- a/aosp_libs/libfmq/include/fmq/MessageQueue.h
++++ b/aosp_libs/libfmq/include/fmq/MessageQueue.h
+@@ -17,6 +17,7 @@
+ #pragma once
+
+ #include <hidl/MQDescriptor.h>
++#include <memory>
+ #include "MessageQueueBase.h"
+
+ namespace android {
+--
+2.30.0
+

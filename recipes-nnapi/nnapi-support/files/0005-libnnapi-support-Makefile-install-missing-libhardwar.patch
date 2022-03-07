@@ -1,0 +1,26 @@
+From ae54fbdd0e5589a3735f23eb082afe58d32c18c0 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Tue, 26 Jan 2021 11:21:52 +0100
+Subject: [PATCH 5/5] libnnapi-support: Makefile: install missing libhardware
+ header
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 186fce36be..3aaa817aca 100644
+--- a/Makefile
++++ b/Makefile
+@@ -57,6 +57,7 @@ install:
+ 	mkdir -p ${DESTDIR}/$(INCLUDEDIR)/aosp/ui
+ 	cp $(LIBNATIVE_SRC)/include/ui/* $(DESTDIR)/$(INCLUDEDIR)/aosp/ui/
+ 	cp -r $(LIBNATIVE_SRC)/libs/nativebase/include/nativebase/ $(DESTDIR)/$(INCLUDEDIR)/aosp/
++	cp -r $(ROOT_DIR)/camera/android/header_files/include/hardware/libhardware/include/hardware/ $(DESTDIR)/$(INCLUDEDIR)/aosp/
+ 	mkdir -p $(DESTDIR)/$(LIBDIR)/
+ 	cp $(OUT)/$(TARGET) $(DESTDIR)/$(LIBDIR)/
+ 
+-- 
+2.30.0
+

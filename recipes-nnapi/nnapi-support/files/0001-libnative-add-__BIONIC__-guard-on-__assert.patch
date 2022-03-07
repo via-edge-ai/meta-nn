@@ -1,0 +1,42 @@
+From 5d28c0a552bd58032e5a8b9667d7305ce5be505a Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Tue, 9 Feb 2021 11:05:40 +0100
+Subject: [PATCH] libnative: add __BIONIC__ guard on __assert
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ aosp_libs/libnative/libs/binder/ndk/include_cpp/android/binder_auto_utils.h      | 2 ++
+ aosp_libs/libnative/libs/binder/ndk/include_cpp/android/binder_interface_utils.h | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/aosp_libs/libnative/libs/binder/ndk/include_cpp/android/binder_auto_utils.h b/aosp_libs/libnative/libs/binder/ndk/include_cpp/android/binder_auto_utils.h
+index 53871f28a..b6cb91164 100644
+--- a/aosp_libs/libnative/libs/binder/ndk/include_cpp/android/binder_auto_utils.h
++++ b/aosp_libs/libnative/libs/binder/ndk/include_cpp/android/binder_auto_utils.h
+@@ -90,7 +90,9 @@ class SpAIBinder {
+         AIBinder* old = *const_cast<AIBinder* volatile*>(&mBinder);
+         if (old != nullptr) AIBinder_decStrong(old);
+         if (old != *const_cast<AIBinder* volatile*>(&mBinder)) {
++#ifdef __BIONNIC__
+             __assert(__FILE__, __LINE__, "Race detected.");
++#endif
+         }
+         mBinder = binder;
+     }
+diff --git a/libs/binder/ndk/include_cpp/android/binder_interface_utils.h b/libs/binder/ndk/include_cpp/android/binder_interface_utils.h
+index a4f444192..d319aea5e 100644
+--- a/aosp_libs/libnative/libs/binder/ndk/include_cpp/android/binder_interface_utils.h
++++ b/aosp_libs/libnative/libs/binder/ndk/include_cpp/android/binder_interface_utils.h
+@@ -53,7 +53,9 @@ class SharedRefBase {
+     SharedRefBase() {}
+     virtual ~SharedRefBase() {
+         std::call_once(mFlagThis, [&]() {
++#ifdef __BIONIC__
+             __assert(__FILE__, __LINE__, "SharedRefBase: no ref created during lifetime");
++#endif
+         });
+     }
+
+--
+2.30.0
+

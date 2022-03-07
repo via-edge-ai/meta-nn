@@ -1,0 +1,26 @@
+From 2bfd434486f611e95db329f5ef2804959a5c8766 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Mon, 25 Jan 2021 12:17:41 +0100
+Subject: [PATCH 4/4] libnnapi-support: Makefile: install missing header
+ nativebase/nativebase.h
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 930b65f686..186fce36be 100644
+--- a/Makefile
++++ b/Makefile
+@@ -56,6 +56,7 @@ install:
+ 	cp $(LIBNATIVE_SRC)/include/android/sharedmem.h $(DESTDIR)/$(INCLUDEDIR)/aosp/android/
+ 	mkdir -p ${DESTDIR}/$(INCLUDEDIR)/aosp/ui
+ 	cp $(LIBNATIVE_SRC)/libs/ui/include/ui/* $(DESTDIR)/$(INCLUDEDIR)/aosp/ui/
++	cp -r $(LIBNATIVE_SRC)/libs/nativebase/include/nativebase/ $(DESTDIR)/$(INCLUDEDIR)/aosp/
+ 	mkdir -p $(DESTDIR)/$(LIBDIR)/
+ 	cp $(OUT)/$(TARGET) $(DESTDIR)/$(LIBDIR)/
+ 
+-- 
+2.30.0
+

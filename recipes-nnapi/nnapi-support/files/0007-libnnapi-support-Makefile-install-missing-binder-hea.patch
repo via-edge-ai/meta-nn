@@ -1,0 +1,26 @@
+From 4b96adbfd3c89d9cbe5af3bbf8846740b1ebed1f Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Tue, 9 Feb 2021 11:36:54 +0100
+Subject: [PATCH 7/7] libnnapi-support: Makefile: install missing binder header
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index ddb780011f..9785079b9f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -59,6 +59,8 @@ install:
+ 	mkdir -p ${DESTDIR}/$(INCLUDEDIR)/aosp/ui
+ 	cp $(LIBNATIVE_SRC)/libs/ui/include/ui/* $(DESTDIR)/$(INCLUDEDIR)/aosp/ui/
+ 	cp -r $(LIBNATIVE_SRC)/libs/nativebase/include/nativebase/ $(DESTDIR)/$(INCLUDEDIR)/aosp/
++	cp $(LIBNATIVE_SRC)/libs/binder/ndk/include_cpp/android/* $(DESTDIR)/$(INCLUDEDIR)/aosp/android/
++	cp $(LIBNATIVE_SRC)/libs/binder/ndk/include_ndk/android/* $(DESTDIR)/$(INCLUDEDIR)/aosp/android/
+ 	cp -r $(ROOT_DIR)/camera/android/header_files/include/hardware/libhardware/include/hardware/ $(DESTDIR)/$(INCLUDEDIR)/aosp/
+ 	mkdir -p $(DESTDIR)/$(LIBDIR)/
+ 	cp $(OUT)/$(TARGET) $(DESTDIR)/$(LIBDIR)/
+-- 
+2.30.0
+

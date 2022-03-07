@@ -1,0 +1,52 @@
+From 241634f0f5202ab5fef1c93dc2175bf5969dda6a Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Thu, 4 Feb 2021 17:52:43 +0100
+Subject: [PATCH 1/2] libcutils: fix some minor compilation issues
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ include/cutils/threads.h | 13 -------------
+ include/cutils/trace.h   |  5 +++++
+ 2 files changed, 5 insertions(+), 13 deletions(-)
+
+diff --git a/aosp_libs/libcutils/include/cutils/threads.h b/aosp_libs/libcutils/include/cutils/threads.h
+index 0f7f8a8..92564b8 100644
+--- a/aosp_libs/libcutils/include/cutils/threads.h
++++ b/aosp_libs/libcutils/include/cutils/threads.h
+@@ -23,16 +23,3 @@
+ #else
+ #include <pthread.h>
+ #endif
+-
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
+-
+-//
+-// Deprecated: use android::base::GetThreadId instead, which doesn't truncate on Mac/Windows.
+-//
+-extern pid_t gettid();
+-
+-#ifdef __cplusplus
+-}
+-#endif
+diff --git a/include/cutils/trace.h b/include/cutils/trace.h
+index 793e2ce..b469e40 100644
+--- a/aosp_libs/libcutils/include/cutils/trace.h
++++ b/aosp_libs/libcutils/include/cutils/trace.h
+@@ -18,7 +18,12 @@
+ #define _LIBS_CUTILS_TRACE_H
+
+ #include <inttypes.h>
++#ifdef __cplusplus
++#include <atomic>
++using namespace std;
++#else
+ #include <stdatomic.h>
++#endif
+ #include <stdbool.h>
+ #include <stdint.h>
+ #include <stdio.h>
+--
+2.30.0
+

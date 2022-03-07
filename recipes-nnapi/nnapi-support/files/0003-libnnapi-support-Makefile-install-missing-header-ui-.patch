@@ -1,0 +1,27 @@
+From 7e04c2fa025939144c6ad9a101b1db46818dc2e5 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Mon, 25 Jan 2021 11:43:02 +0100
+Subject: [PATCH 3/4] libnnapi-support: Makefile: install missing header
+ ui/GraphicBuffer.h
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index ce25e43d51..930b65f686 100644
+--- a/Makefile
++++ b/Makefile
+@@ -54,6 +54,8 @@ install:
+ 	cp -r $(LIBHIDL_SRC)/libhidlmemory/include/* $(DESTDIR)/$(INCLUDEDIR)/aosp/
+ 	mkdir -p ${DESTDIR}/$(INCLUDEDIR)/aosp/android
+ 	cp $(LIBNATIVE_SRC)/include/android/sharedmem.h $(DESTDIR)/$(INCLUDEDIR)/aosp/android/
++	mkdir -p ${DESTDIR}/$(INCLUDEDIR)/aosp/ui
++	cp $(LIBNATIVE_SRC)/libs/ui/include/ui/* $(DESTDIR)/$(INCLUDEDIR)/aosp/ui/
+ 	mkdir -p $(DESTDIR)/$(LIBDIR)/
+ 	cp $(OUT)/$(TARGET) $(DESTDIR)/$(LIBDIR)/
+ 
+-- 
+2.30.0
+

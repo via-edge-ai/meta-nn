@@ -1,0 +1,34 @@
+From ee93dfc47ff6d339e25dca1157bd41d0cd887697 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Fri, 4 Sep 2020 12:06:12 +0200
+Subject: [PATCH] libhidl: add Makefile
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ Makefile | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Makefile
+
+diff --git a/aosp_libs/libhidl/Makefile b/aosp_libs/libhidl/Makefile
+new file mode 100644
+index 0000000..1bac70e
+--- /dev/null
++++ b/aosp_libs/libhidl/Makefile
+@@ -0,0 +1,14 @@
++SRC :=  base/HidlInternal.cpp base/HidlSupport.cpp base/Status.cpp libhidlmemory/mapping.cpp transport/HidlTransportUtils.cpp transport/allocator/1.0/default/AshmemAllocator.cpp transport/memory/1.0/default/AshmemMapper.cpp transport/memory/1.0/default/AshmemMemory.cpp $(NNAPI_SRC)/libhidl/adapter/HidlAdapterUtil.cpp $(NNAPI_SRC)/libhidl/allocator/IAllocator.cpp $(NNAPI_SRC)/libhidl/allocator/ashmem_allocator.cpp $(NNAPI_SRC)/libhidl/base/IBase.cpp $(NNAPI_SRC)/libhidl/memory/IMapper.cpp $(NNAPI_SRC)/libhidl/memory/IMemory.cpp $(NNAPI_SRC)/libhidl/memory/ashmem_mapper.cpp
++
++INCLUDES = -I adapter/include -I base/include -I libhidlmemory/include -I transport/allocator/1.0/default -I transport/memory/1.0/default -I transport/include -I .
++
++CPPFLAGS += $(INCLUDES)
++
++OBJECTS := $(SRC:.cpp=.o)
++TARGET := $(OUT)/libhidl.a
++
++$(TARGET): $(OBJECTS)
++	$(AR) rcs $@ $^
++
++clean:
++	rm -rf $(OBJECTS) $(TARGET)
+--
+2.30.0
+

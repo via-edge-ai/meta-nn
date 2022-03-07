@@ -1,0 +1,52 @@
+From 4429ca98e2b907769391cb0609c82779363e865f Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Wed, 20 Jan 2021 13:34:02 +0000
+Subject: [PATCH] Add Makefile
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ Makefile | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 Makefile
+
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 000000000..9adcdd984
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,32 @@
++SRC := nn/chromeos/sampledriver.cpp \
++	nn/driver/sample/SampleDriver.cpp \
++	nn/driver/sample/SampleDriverFull.cpp \
++	nn/driver/sample/SampleDriverMinimal.cpp \
++	nn/driver/sample/SampleDriverPartial.cpp \
++	nn/driver/sample/SampleDriverUtils.cpp
++
++OBJECTS := $(SRC:.cpp=.o)
++
++DEFINES =  -D __ANDROID_API__=30 -D __ANDROID_API_O_MR1__=27 -D __ANDROID_API_P__=28 -D __ANDROID_API_Q__=29 -D __ANDROID_API_R__=30 -D __ANDROID_API_FUTURE__=10000 -D NNAPI_CHROMEOS -D NN_INCLUDE_CPU_IMPLEMENTATION -D TF_LITE_DISABLE_X86_NEON
++
++INCLUDES = -I $(AOSP_INCLUDE)  -I nn/runtime/include -I nn/chromeos/includes -I nn/common/ -I nn/common/include -I nn/common/random -I nn/driver/sample
++
++CFLAGS = -Wall -Werror -Wextra -std=c++17 -fPIC -fvisibility=default -Wno-inconsistent-missing-override -Wno-sign-compare -Wl,--no-as-needed -Wl,--no-undefined
++
++CXXFLAGS += $(DEFINES) $(INCLUDES) $(CFLAGS)
++
++LIBNAME := libvendor-nn-hal.so.1.0
++SONAME  := libvendor-nn-hal.so.1
++SOLINK  := libvendor-nn-hal.so
++
++$(LIBNAME): $(OBJECTS)
++	$(CC) -shared  -Wl,-soname,$(SONAME) -o $@ $^ -lpthread -lrt -ltensorflowlite
++
++install: $(LIBNAME)
++	mkdir -p $(DESTDIR)/$(LIBDIR)/
++	cp $(LIBNAME) $(DESTDIR)/$(LIBDIR)/
++	ln -sf $(LIBNAME) $(DESTDIR)/$(LIBDIR)/$(SONAME)
++	ln -sf $(LIBNAME) $(DESTDIR)/$(LIBDIR)/$(SOLINK)
++
++clean:
++	rm -rf $(OBJECTS) $(LIBNAME)
+-- 
+2.32.0
+
