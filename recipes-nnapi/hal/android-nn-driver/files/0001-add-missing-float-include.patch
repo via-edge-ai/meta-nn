@@ -1,0 +1,35 @@
+From e5bf9b9b06f50b3d56130e69eb95b57ad232ac1f Mon Sep 17 00:00:00 2001
+From: Suhrid Subramaniam <suhrid.subramaniam@mediatek.com>
+Date: Wed, 2 Feb 2022 14:26:28 -0800
+Subject: [PATCH] Add float dependency for armnndriverimpl
+
+Signed-off-by: Suhrid Subramaniam <suhrid.subramaniam@mediatek.com>
+---
+ 1.2/ArmnnDriverImpl.hpp | 1 +
+ 1.3/ArmnnDriverImpl.hpp | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/1.2/ArmnnDriverImpl.hpp b/1.2/ArmnnDriverImpl.hpp
+index ad41050..9688835 100644
+--- a/1.2/ArmnnDriverImpl.hpp
++++ b/1.2/ArmnnDriverImpl.hpp
+@@ -7,6 +7,7 @@
+ 
+ #include <HalInterfaces.h>
+ #include <fcntl.h>
++#include <float.h>
+ 
+ #include "../CacheDataHandler.hpp"
+ #include "../DriverOptions.hpp"
+diff --git a/1.3/ArmnnDriverImpl.hpp b/1.3/ArmnnDriverImpl.hpp
+index 5329a41..2f3ebc7 100644
+--- a/1.3/ArmnnDriverImpl.hpp
++++ b/1.3/ArmnnDriverImpl.hpp
+@@ -7,6 +7,7 @@
+ 
+ #include <HalInterfaces.h>
+ #include <fcntl.h>
++#include <float.h>
+ 
+ #include "../CacheDataHandler.hpp"
+ #include "../DriverOptions.hpp"

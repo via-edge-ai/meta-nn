@@ -1,0 +1,31 @@
+From ec03713874162891124ec35a086e21cb6feb16c3 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Mon, 28 Dec 2020 10:31:05 +0000
+Subject: [PATCH] use syncWait instead of sync_wait
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ ArmnnPreparedModel_1_3.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/ArmnnPreparedModel_1_3.cpp b/ArmnnPreparedModel_1_3.cpp
+index 2970e8f..78d2eae 100644
+--- a/ArmnnPreparedModel_1_3.cpp
++++ b/ArmnnPreparedModel_1_3.cpp
+@@ -13,7 +13,6 @@
+ #include "Utils.hpp"
+ 
+ #include <Utils.h>
+-#include <android/sync.h>
+ #include <log/log.h>
+ #include <OperationsUtils.h>
+ #include <ExecutionBurstServer.h>
+@@ -424,7 +423,7 @@ Return<void> ArmnnPreparedModel_1_3<HalVersion>::executeFenced(const V1_3::Reque
+             return Void();
+         }
+ 
+-        if (sync_wait(fenceNativeHandle->data[0], -1) < 0)
++        if (syncWait(fenceNativeHandle->data[0], -1) != FenceState::SIGNALED)
+         {
+             ALOGE("ArmnnPreparedModel_1_3::executeFenced sync fence failed.");
+             cb(V1_3::ErrorStatus::GENERAL_FAILURE, hidl_handle(nullptr), nullptr);

@@ -1,0 +1,59 @@
+From e4f1c6adf083a838c18e78dbd7b11f87c3ce77b2 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Tue, 27 Apr 2021 12:08:08 +0200
+Subject: [PATCH] add gpu tuning file support
+
+if /usr/share/armnn/gpu-tuner-file.csv is present then use it to improve
+performances
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ nn-driver.cpp | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/nn-driver.cpp b/nn-driver.cpp
+index 50f1cd0..06ad17d 100644
+--- a/nn-driver.cpp
++++ b/nn-driver.cpp
+@@ -2,8 +2,12 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
++#include <sys/stat.h>
++
+ #include "ArmnnDriver.hpp"
+ 
++#define GPU_TUNER_FILE "/usr/share/armnn/gpu-tuner-file.csv"
++
+ using namespace armnn_driver;
+ 
+ namespace android {
+@@ -17,9 +21,26 @@ namespace V1_0 {
+                                            bool /*dummy*/) {
+   // TODO: Make this more dynamic so we can easily change the
+   //       driver.
+-  const std::vector<armnn::BackendId> compute_devices = {{armnn::Compute::GpuAcc, armnn::Compute::CpuAcc}};
+-  return new ArmnnDriver(DriverOptions(compute_devices , false));
+ 
++  char  arg0[]  = "android-nn-driver";
++  char  arg1[]  = "--compute";
++  char  arg2[]  = "GpuAcc,CpuAcc";
++  char* argv[]  = {&arg0[0], &arg1[0], &arg2[0], NULL, NULL, NULL};
++  int   argc    = 3;
++  struct stat gpu_tuner_file;
++
++  ALOGV("Backends: GpuAcc, CpuAcc");
++
++  if (stat (GPU_TUNER_FILE, &gpu_tuner_file) == 0) {
++
++    ALOGV("Using gpu tuning file %s", GPU_TUNER_FILE);
++
++    argv[3] = (char*) "--cl-tuned-parameters-file";
++    argv[4] = (char*) GPU_TUNER_FILE;
++    argc +=2;
++  }
++
++  return new ArmnnDriver(DriverOptions(argc, argv));
+ }
+ 
+ }  // namespace V1_0
