@@ -1,0 +1,24 @@
+From ce15f2386f722e475f563f29c0a6414eb9d1a04b Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Thu, 28 Jan 2021 15:05:35 +0000
+Subject: [PATCH] fix makefile to enable yocto build
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ apps/examples/apu/host/Makefile | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/apps/examples/apu/host/Makefile b/apps/examples/apu/host/Makefile
+index 212c4ce..e088c1b 100644
+--- a/apps/examples/apu/host/Makefile
++++ b/apps/examples/apu/host/Makefile
+@@ -1,6 +1,3 @@
+-CROSS_COMPILE?=
+-CC=$(CROSS_COMPILE)gcc
+-AR=$(CROSS_COMPILE)ar
+ PREFIX?=/usr/local/
+ 
+ CFLAGS=-W -Wall -I../include -I../include/xrp
+-- 
+2.17.1
+

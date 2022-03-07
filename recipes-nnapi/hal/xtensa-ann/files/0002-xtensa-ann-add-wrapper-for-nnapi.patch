@@ -1,0 +1,100 @@
+From cf2078293dd91945a00663ba9c75936237bbf3bf Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Tue, 26 Jan 2021 14:31:41 +0000
+Subject: [PATCH] xtensa-ann: add wrapper for nnapi
+
+NNAPI port for linux needs a wrapper to register the HAL
+
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
+---
+ xtensa_driver/XtensaDriver.cpp |  5 ++++
+ xtensa_driver/nn_driver.cpp    | 51 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 56 insertions(+)
+ create mode 100644 xtensa_driver/nn_driver.cpp
+
+diff --git a/xtensa_driver/XtensaDriver.cpp b/xtensa_driver/XtensaDriver.cpp
+index f19778a..d31c79d 100644
+--- a/xtensa_driver/XtensaDriver.cpp
++++ b/xtensa_driver/XtensaDriver.cpp
+@@ -16,6 +16,10 @@
+ #include "XtensaDriver.h"
+ #include "xrp_ann_ns.h"
+ #include "xrp_api.h"
++extern "C" {
++//libapu include
++#include "utils.h"
++}
+ 
+ #include "HalInterfaces.h"
+ #include "Utils.h"
+@@ -476,6 +480,7 @@ XtensaDriver::~XtensaDriver() {
+     for ( int i = 0; i < totalCores; i ++) {
+         xrp_release_queue(mXRPQueues[i]);
+         xrp_release_device(mXRPDevices[i]);
++        apu_stop(i);
+     }
+ }
+ 
+diff --git a/xtensa_driver/nn_driver.cpp b/xtensa_driver/nn_driver.cpp
+new file mode 100644
+index 0000000..d64b08c
+--- /dev/null
++++ b/xtensa_driver/nn_driver.cpp
+@@ -0,0 +1,57 @@
++// Copyright 2020 The Chromium OS Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "XtensaDriver.h"
++extern "C" {
++//libapu include
++#include "utils.h"
++}
++
++using android::nn::xtensa_driver::XtensaDriver;
++
++namespace android {
++namespace hardware {
++namespace neuralnetworks {
++namespace V1_0 {
++
++// static
++// This registers the SampleDriverFull into the DeviceManager.
++::android::sp<IDevice> IDevice::getService(const std::string& /*serviceName*/,
++                                           bool /*dummy*/) {
++    // TODO: Make this more dynamic so we can easily change the
++    //       driver.
++
++    int ret;
++    int deviceId = 0;
++    int disableFlag = 0;
++    int queuePriority = -1;
++    struct timeval timeout = { 2, 0 };
++
++    ret = apu_set_firmware_name(deviceId, (char *)"rproc-vp6-fw");
++
++    if (ret) {
++        LOG(DEBUG) << "Failed to select firmware to load for device " << deviceId;
++        return nullptr;
++    }
++
++    ret = apu_start(deviceId);
++    if (ret) {
++        LOG(DEBUG) << "Failed to start core " << deviceId;
++        return nullptr;
++    }
++
++    ret = wait_for_apu(deviceId, timeout);
++    if (ret) {
++        LOG(DEBUG) << "Device " << deviceId << " is not ready";
++        return nullptr;
++    }
++
++    return new XtensaDriver("ten-xtensa", queuePriority, disableFlag, nn::BuiltinOperationResolver::get());
++
++}
++
++}  // namespace V1_0
++}  // namespace neuralnetworks
++}  // namespace hardware
++}  // namespace android

@@ -1,0 +1,68 @@
+From 0c0284332e894add5ff067ddbdfd9152276c73d0 Mon Sep 17 00:00:00 2001
+From: Alexandre Bailon <abailon@baylibre.com>
+Date: Thu, 18 Feb 2021 15:44:08 +0100
+Subject: [PATCH 3/4] Add support of user pointer
+
+This adds support of a new ioctl that could be used
+to allocate a gem from an user pointer.
+The goal is to reduce the number of memory copy.
+
+Signed-off-by: Alexandre Bailon <abailon@baylibre.com>
+---
+ apu/apu_drm.h   | 12 +++++++++++-
+ apu/apu_drmif.h |  2 ++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/apu/apu_drm.h b/apu/apu_drm.h
+index 52d83705..bcb1bd53 100644
+--- a/apu/apu_drm.h
++++ b/apu/apu_drm.h
+@@ -45,6 +45,14 @@ struct drm_apu_gem_new {
+ 	uint64_t offset;		/* out */
+ };
+ 
++struct drm_apu_gem_user_new {
++	uint64_t hostptr;
++	uint32_t size;			/* in */
++	uint32_t flags;			/* in */
++	uint32_t handle;		/* out */
++	uint64_t offset;		/* out */
++};
++
+ struct drm_apu_gem_queue {
+ 	uint32_t device;
+ 	uint32_t cmd;
+@@ -90,7 +98,8 @@ struct drm_apu_state {
+ #define DRM_APU_GEM_IOMMU_MAP		0x03
+ #define DRM_APU_GEM_IOMMU_UNMAP		0x04
+ #define DRM_APU_STATE			0x05
+-#define DRM_APU_NUM_IOCTLS		0x06
++#define DRM_APU_GEM_USER_NEW		0x06
++#define DRM_APU_NUM_IOCTLS		0x07
+ 
+ #define DRM_IOCTL_APU_GEM_NEW		DRM_IOWR(DRM_COMMAND_BASE + DRM_APU_GEM_NEW, struct drm_apu_gem_new)
+ #define DRM_IOCTL_APU_GEM_QUEUE		DRM_IOWR(DRM_COMMAND_BASE + DRM_APU_GEM_QUEUE, struct drm_apu_gem_queue)
+@@ -98,6 +107,7 @@ struct drm_apu_state {
+ #define DRM_IOCTL_APU_GEM_IOMMU_MAP	DRM_IOWR(DRM_COMMAND_BASE + DRM_APU_GEM_IOMMU_MAP, struct drm_apu_gem_iommu_map)
+ #define DRM_IOCTL_APU_GEM_IOMMU_UNMAP	DRM_IOWR(DRM_COMMAND_BASE + DRM_APU_GEM_IOMMU_UNMAP, struct drm_apu_gem_iommu_map)
+ #define DRM_IOCTL_APU_STATE		DRM_IOWR(DRM_COMMAND_BASE + DRM_APU_STATE, struct drm_apu_state)
++#define DRM_IOCTL_APU_GEM_USER_NEW	DRM_IOWR(DRM_COMMAND_BASE + DRM_APU_GEM_USER_NEW, struct drm_apu_gem_user_new)
+ 
+ #if defined(__cplusplus)
+ }
+diff --git a/apu/apu_drmif.h b/apu/apu_drmif.h
+index 3d79a6d6..de889793 100644
+--- a/apu/apu_drmif.h
++++ b/apu/apu_drmif.h
+@@ -43,6 +43,8 @@ struct apu_bo *apu_bo_new(struct apu_drm_device *dev,
+ 		uint32_t size, uint32_t flags);
+ struct apu_bo *apu_cached_bo_new(struct apu_drm_device *dev,
+ 		uint32_t size, uint32_t flags);
++struct apu_bo *apu_bo_user_new(struct apu_drm_device *dev,
++		void *hostptr, uint32_t size, uint32_t flags);
+ struct apu_bo *apu_bo_ref(struct apu_bo *bo);
+ void apu_bo_del(struct apu_bo *bo);
+ uint32_t apu_bo_handle(struct apu_bo *bo);
+-- 
+2.33.0
+
