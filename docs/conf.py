@@ -26,6 +26,11 @@ extensions = [
 
 # -- Options for HTML output -------------------------------------------------
 
+templates_path = ['_templates']
+
+# We use custom footer.html to show copyright instead.
+html_show_copyright = False
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #

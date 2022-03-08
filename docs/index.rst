@@ -6,5 +6,4 @@ AI/ML yocto meta layer
    :caption: Contents:
 
    overview
-   building
    testing

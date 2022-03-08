@@ -1,0 +1,23 @@
+{% extends "!footer.html" %}
+{% block contentinfo  %}
+    <p>
+    <div>
+        <a href="https://www.mediatek.com/cookie-statement">Cookie Statement</a>
+        <span style="padding-right:10px; padding-left:10px" >|</span>
+        <a href="https://www.mediatek.com/legal-notice">Legal Notice</a>
+        <span style="padding-right:10px; padding-left:10px" >|</span>
+        <a href="https://www.mediatek.com/privacy-policy">Privacy Policy</a>
+    </div>
+    {#
+        Use custom copyright notice instead of built-in copyright string in conf.py
+    #}
+    <br/>
+    <div>
+        &#169; Copyright 2021 MediaTek Inc.
+    </div>
+    <div>
+        &#169; Copyright 2020 - 2021 BayLibre, SAS
+    </div>
+    </p>
+    {{ super() }}
+{% endblock %}
