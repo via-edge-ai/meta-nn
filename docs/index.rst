@@ -8,3 +8,4 @@ AI/ML yocto meta layer
    overview
    nnapi
    tensorflow-lite
+   onnx
