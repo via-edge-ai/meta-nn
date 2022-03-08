@@ -2,8 +2,9 @@ AI/ML yocto meta layer
 ======================
 
 .. toctree::
-   :maxdepth: 2
+   :titlesonly:
    :caption: Contents:
 
    overview
-   testing
+   nnapi
+   tensorflow-lite
