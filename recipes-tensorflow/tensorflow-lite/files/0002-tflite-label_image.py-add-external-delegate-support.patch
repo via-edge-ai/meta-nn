@@ -10,8 +10,8 @@ add external delegate support for:
 
 Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
 ---
- .../lite/examples/python/label_image.py       | 34 ++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ .../lite/examples/python/label_image.py       | 36 ++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
 
 diff --git a/tensorflow/lite/examples/python/label_image.py b/tensorflow/lite/examples/python/label_image.py
 index 72287022296..bc995bff8d1 100644
@@ -22,14 +22,14 @@ index 72287022296..bc995bff8d1 100644
  from __future__ import division
  from __future__ import print_function
 +from os import path
- 
+
  import argparse
  import time
 +import sys
- 
+
  import numpy as np
  from PIL import Image
-@@ -58,10 +60,38 @@ if __name__ == '__main__':
+@@ -58,10 +60,42 @@ if __name__ == '__main__':
        help='input standard deviation')
    parser.add_argument(
        '--num_threads', default=None, type=int, help='number of threads')
@@ -41,7 +41,7 @@ index 72287022296..bc995bff8d1 100644
 +  req.add_argument(
 +          '--use_nnapi', action='store_true', help='use nnapi backend')
    args = parser.parse_args()
- 
+
 +  if args.use_gpu:
 +    if path.exists("/usr/lib/gpu_external_delegate.so") or path.exists("/usr/lib64/gpu_external_delegate.so"):
 +      delegate = [tflite.load_delegate('gpu_external_delegate.so')]
@@ -55,10 +55,14 @@ index 72287022296..bc995bff8d1 100644
 +      print("libarmnnDelegate.so.25: file not found")
 +      sys.exit(1)
 +  elif args.use_nnapi:
-+    if path.exists("/usr/lib/nnapi_external_delegate.so") or path.exists("/usr/lib64/nnapi_external_delegate.so"):
-+      delegate = [tflite.load_delegate('nnapi_external_delegate.so')]
++    if path.exists("/usr/lib/libneuralnetworks.so") or path.exists("/usr/lib64/libneuralnetworks.so"):
++      if path.exists("/usr/lib/nnapi_external_delegate.so") or path.exists("/usr/lib64/nnapi_external_delegate.so"):
++        delegate = [tflite.load_delegate('nnapi_external_delegate.so')]
++      else:
++        print("nnapi_external_delegate.so: file not found")
++        sys.exit(1)
 +    else:
-+      print("nnapi_external_delegate.so: file not found")
++      print("nnapi is not supported on this platform: libneuralnetworks.so: file not found")
 +      sys.exit(1)
 +  else:
 +    delegate=None
@@ -67,5 +71,5 @@ index 72287022296..bc995bff8d1 100644
 -      model_path=args.model_file, num_threads=args.num_threads)
 +      model_path=args.model_file, experimental_delegates=delegate, num_threads=args.num_threads)
    interpreter.allocate_tensors()
- 
+
    input_details = interpreter.get_input_details()
