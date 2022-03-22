@@ -26,6 +26,7 @@ SRC_URI = "git://github.com/ARM-software/android-nn-driver.git;branch=${BRANCH} 
            file://0001-replace-steady_clock-by-high_resolution_clock.patch \
            file://0001-add-missing-fcntl-include.patch \
            file://0001-add-missing-float-include.patch \
+           file://0001-Fix-a-wrong-implicit-type-cast.patch \
            "
 
 S = "${WORKDIR}/git"
