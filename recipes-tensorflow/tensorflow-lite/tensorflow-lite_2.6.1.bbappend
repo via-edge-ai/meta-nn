@@ -3,6 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI += " \
            file://0001-add-external-gpu-delegate.patch \
            file://0001-add-external-nnapi-delegate.patch \
+           file://0001-tensorflow-lite-add-external-delegate.patch \
            file://0001-tflite-label_image.py-use-tflite-interpreter.patch \
            file://0002-tflite-label_image.py-add-external-delegate-support.patch \
 "
