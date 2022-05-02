@@ -21,17 +21,15 @@ The image installs a python demo application for image recognition inside the ``
 
 It is the upstream `label_image.py <https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/examples/python/label_image.py>`_, modified according to explanations available `here <https://www.tensorflow.org/lite/guide/python>`_.
 
-We also added three flags: ``--use_gpu``, ``--use_armnn`` and ``--use_nnapi`` to allow using gpu, armnn and nnapi delegates. To run gpu/armnn/nnapi delegate we use the experimental `load_delegate API <https://www.tensorflow.org/api_docs/python/tf/lite/experimental/load_delegate>`_.
-
 To run the demo, run the following commands
 
 .. prompt:: bash #
 
     cd /usr/share/label_image
-    python3 label_image.py --label_file labels_mobilenet_quant_v1_224.txt --image grace_hopper.jpg --model_file mobilenet_v1_1.0_224_quant.tflite              #to run on the cpu
-    python3 label_image.py --label_file labels_mobilenet_quant_v1_224.txt --image grace_hopper.jpg --model_file mobilenet_v1_1.0_224_quant.tflite --use_gpu    #to run on the gpu
-    python3 label_image.py --label_file labels_mobilenet_quant_v1_224.txt --image grace_hopper.jpg --model_file mobilenet_v1_1.0_224_quant.tflite --use_armnn  #to run on the gpu, using armnn delegate
-    python3 label_image.py --label_file labels_mobilenet_quant_v1_224.txt --image grace_hopper.jpg --model_file mobilenet_v1_1.0_224_quant.tflite --use_nnapi  #to run using nnapi delegate
+    python3 label_image.py --label_file labels_mobilenet_quant_v1_224.txt --image grace_hopper.jpg --model_file mobilenet_v1_1.0_224_quant.tflite                                                                    #to run on the cpu
+    python3 label_image.py --label_file labels_mobilenet_quant_v1_224.txt --image grace_hopper.jpg --model_file mobilenet_v1_1.0_224_quant.tflite -e /usr/lib(64)/gpu_external_delegate.so                           #to run on the gpu
+    python3 label_image.py --label_file labels_mobilenet_quant_v1_224.txt --image grace_hopper.jpg --model_file mobilenet_v1_1.0_224_quant.tflite -e /usr/lib(64)/libarmnnDelegate.so.25 -o "backends:GpuAcc,CpuAcc" #to run on the gpu, using armnn delegate
+    python3 label_image.py --label_file labels_mobilenet_quant_v1_224.txt --image grace_hopper.jpg --model_file mobilenet_v1_1.0_224_quant.tflite -e /usr/lib(64)/nnapi_external_delegate.so                         #to run using nnapi delegate
 
 
 The image should contain necessary packages to do python development such as the python tflite runtime and pip3.

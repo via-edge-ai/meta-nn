@@ -1,18 +1,19 @@
-From c5a6039bbbdc5da44a0eed6775c924e667d94f54 Mon Sep 17 00:00:00 2001
+From 237c5adaac4e49f55dc628094a06e78008f57c8d Mon Sep 17 00:00:00 2001
 From: JoyingKyc <joying.kuo@mediatek.com>
 Date: Thu, 28 Apr 2022 17:56:55 +0800
 Subject: [PATCH] tensorflow-lite: add external delegate
 
 Add External Delegate for building libtensorflowlite.so to support the demo APP (Gst-inference)
+
 ---
  tensorflow/lite/BUILD | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/tensorflow/lite/BUILD b/tensorflow/lite/BUILD
-index 72a46e6675f..d3c6e7ef008 100644
+index 8414dd7fe67..a0906771c1b 100644
 --- a/tensorflow/lite/BUILD
 +++ b/tensorflow/lite/BUILD
-@@ -309,6 +309,7 @@ cc_library(
+@@ -393,6 +393,7 @@ cc_library(
          ":string",
          ":type_to_tflitetype",
          ":util",
@@ -20,7 +21,7 @@ index 72a46e6675f..d3c6e7ef008 100644
          "//tensorflow/lite/c:common",
          "//tensorflow/lite/core/api",
          "//tensorflow/lite/core/api:verifier",
-@@ -348,6 +349,7 @@ cc_library(
+@@ -433,6 +434,7 @@ cc_library(
          ":string",
          ":type_to_tflitetype",
          ":util",
@@ -28,7 +29,7 @@ index 72a46e6675f..d3c6e7ef008 100644
          "//tensorflow/lite/c:common",
          "//tensorflow/lite/core/api",
          "//tensorflow/lite/core/api:verifier",
-@@ -414,6 +416,7 @@ cc_library(
+@@ -502,6 +504,7 @@ cc_library(
          ":type_to_tflitetype",
          ":util",
          ":version",
@@ -36,14 +37,11 @@ index 72a46e6675f..d3c6e7ef008 100644
          "//tensorflow/lite/c:c_api_types",
          "//tensorflow/lite/c:common",
          "//tensorflow/lite/core/api",
-@@ -473,6 +476,7 @@ cc_library(
+@@ -807,6 +810,7 @@ cc_test(
          ":string",
-         ":type_to_tflitetype",
+         ":string_util",
          ":util",
 +        "//tensorflow/lite/delegates/external:external_delegate",
          "//tensorflow/lite/c:c_api_types",
          "//tensorflow/lite/c:common",
-         "//tensorflow/lite/core/api",
--- 
-2.18.0
-
+         "//tensorflow/lite/delegates/utils:simple_delegate",

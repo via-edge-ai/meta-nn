@@ -5,7 +5,6 @@ SRC_URI += " \
            file://0001-add-external-nnapi-delegate.patch \
            file://0001-tensorflow-lite-add-external-delegate.patch \
            file://0001-tflite-label_image.py-use-tflite-interpreter.patch \
-           file://0002-tflite-label_image.py-add-external-delegate-support.patch \
 "
 
 DEPENDS += "virtual/libegl"
@@ -22,11 +21,6 @@ TF_TARGET_EXTRA += " \
 TF_ARGS_EXTRA += " \
          --copt -DCL_DELEGATE_NO_GL \
 "
-
-# Workaround for network access issue during compile step
-# this needs to be fixed in the recipes buildsystem to move
-# this such that it can be accomplished during do_fetch task
-do_compile[network] = "1"
 
 do_install:append() {
         # install external delegates
