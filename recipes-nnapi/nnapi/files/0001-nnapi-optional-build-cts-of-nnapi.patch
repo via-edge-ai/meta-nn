@@ -36,7 +36,7 @@ index 9b17b0d8a..1989d3462 100644
 
 +BUILD_NNAPI_CTS ?= 0
 +
- FLAGS := -Wall -Werror -Wextra -std=c++17 -fPIC -fvisibility=default -Wno-inconsistent-missing-override -Wno-sign-compare -Wl,--no-as-needed -Wl,--no-undefined
+ FLAGS := -Wall -Werror -Wextra -std=c++17 -fPIC -fvisibility=default -Wno-inconsistent-missing-override -Wno-sign-compare -Wno-deprecated-declarations -Wl,--no-as-needed -Wl,--no-undefined
 +export FLAGS
 
  DEFINES = -D __ANDROID_API__=30 -D __ANDROID_API_O_MR1__=27 -D __ANDROID_API_P__=28 -D __ANDROID_API_Q__=29 -D __ANDROID_API_R__=30 -D __ANDROID_API_FUTURE__=10000 -D NNAPI_CHROMEOS -D TF_LITE_DISABLE_X86_NEON -D NN_INCLUDE_CPU_IMPLEMENTATION

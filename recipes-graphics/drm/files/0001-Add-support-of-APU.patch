@@ -1,11 +1,12 @@
-From 7f9b20ebe88cd71ed9182fa1aac928cfd232dbf6 Mon Sep 17 00:00:00 2001
-From: Alexandre Bailon <abailon@baylibre.com>
-Date: Fri, 4 Dec 2020 11:23:01 +0100
+From b5fabe399a19bc97651d2b8de2dcefa6a6b3fdfc Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Fri, 29 Apr 2022 17:10:32 +0200
 Subject: [PATCH 1/4] Add support of APU
 
 This adds the support APU (AI Processor Unit).
 
 Signed-off-by: Alexandre Bailon <abailon@baylibre.com>
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
 ---
  apu/apu-symbols.txt   |  19 ++
  apu/apu_drm.c         | 625 ++++++++++++++++++++++++++++++++++++++++++
@@ -944,13 +945,13 @@ index 00000000..794598a9
 +  ],
 +)
 diff --git a/meson.build b/meson.build
-index e292554a..8a775df4 100644
+index 48013d05..56398e76 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -121,6 +121,15 @@ if _omap == 'true'
-   with_omap = true
+@@ -140,6 +140,16 @@ if _omap == 'true'
  endif
- 
+ summary('OMAP', with_omap)
+
 +with_apu = false
 +_apu = get_option('apu')
 +if _apu == 'true'
@@ -959,11 +960,12 @@ index e292554a..8a775df4 100644
 +  endif
 +  with_apu = true
 +endif
++summary('APU', with_apu)
 +
  with_freedreno = false
  _freedreno = get_option('freedreno')
  if _freedreno != 'false'
-@@ -347,6 +356,9 @@ endif
+@@ -372,6 +382,9 @@ endif
  if with_omap
    subdir('omap')
  endif
@@ -973,19 +975,11 @@ index e292554a..8a775df4 100644
  if with_exynos
    subdir('exynos')
  endif
-@@ -378,6 +390,7 @@ message('  Radeon API     @0@'.format(with_radeon))
- message('  AMDGPU API     @0@'.format(with_amdgpu))
- message('  Nouveau API    @0@'.format(with_nouveau))
- message('  OMAP API       @0@'.format(with_omap))
-+message('  APU API       @0@'.format(with_apu))
- message('  EXYNOS API     @0@'.format(with_exynos))
- message('  Freedreno API  @0@ (kgsl: @1@)'.format(with_freedreno, with_freedreno_kgsl))
- message('  Tegra API      @0@'.format(with_tegra))
 diff --git a/meson_options.txt b/meson_options.txt
-index 8af33f1c..59c95fe2 100644
+index f5d066f0..72d6ddf4 100644
 --- a/meson_options.txt
 +++ b/meson_options.txt
-@@ -67,6 +67,13 @@ option(
+@@ -60,6 +60,13 @@ option(
    choices : ['true', 'false', 'auto'],
    description : '''Enable support for OMAP's experimental KMS API.''',
  )
@@ -1263,10 +1257,10 @@ index 00000000..1d007bb4
 +	return err;
 +}
 diff --git a/tests/meson.build b/tests/meson.build
-index 6c8ddd9c..bd990246 100644
+index ac9e66b0..f03cb9c5 100644
 --- a/tests/meson.build
 +++ b/tests/meson.build
-@@ -47,6 +47,9 @@ endif
+@@ -43,6 +43,9 @@ endif
  if with_nouveau
    subdir('nouveau')
  endif
@@ -1276,6 +1270,6 @@ index 6c8ddd9c..bd990246 100644
  
  drmsl = executable(
    'drmsl',
--- 
-2.33.0
+--
+2.35.2
 

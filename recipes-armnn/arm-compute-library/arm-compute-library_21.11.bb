@@ -7,9 +7,11 @@ inherit scons
 
 #recipe based on https://github.com/Witekio/meta-machinelearning/blob/master/recipes-arm/arm-compute-library/arm-compute-library_19.02.bb
 
-SRC_URI = "git://github.com/ARM-software/ComputeLibrary.git;tag=v${PV};name=arm-compute-library \
+SRC_URI = "git://github.com/ARM-software/ComputeLibrary.git;protocol=https;branch=master;name=arm-compute-library \
            file://0001-enable-yocto-build.patch \
            "
+
+SRCREV = "91ee4d0a9ef128b16936921470a0e3ffef347536"
 
 EXTRA_OESCONS:aarch64 = "arch=arm64-v8a extra_cxx_flags="-fPIC" Werror=0 asserts=0 debug=0 benchmark_tests=0 validation_tests=0 embed_kernels=1 openmp=1 opencl=1 neon=1 opencl=1 set_soname=1"
 

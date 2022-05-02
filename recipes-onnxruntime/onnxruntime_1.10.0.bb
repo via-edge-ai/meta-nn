@@ -12,14 +12,14 @@ PACKAGES += "${PN}-examples ${PN}-examples-dbg"
 
 SRCREV_FORMAT = "onnxruntime"
 
-SRCREV_onnxruntime ="v${PV}"
+SRCREV_onnxruntime ="0d9030e79888d1d5828730b254fedc53c7b640c1"
 
 S = "${WORKDIR}/git/cmake"
 
 inherit python3native cmake
 
 SRC_URI = " \
-	gitsm://github.com/microsoft/onnxruntime.git;protocol=git;branch=rel-${PV};name=onnxruntime \
+	gitsm://github.com/microsoft/onnxruntime.git;protocol=https;branch=rel-${PV};name=onnxruntime \
 	file://efficientnet-lite4/test_data_set_0/input_0.pb \
 	file://efficientnet-lite4/test_data_set_0/output_0.pb \
 	file://efficientnet-lite4/test_data_set_1/input_0.pb \
@@ -36,7 +36,7 @@ do_configure:prepend() {
 	cd ${WORKDIR}/git/cmake/external/protobuf
 	# Onnxruntime 1.10.0 by default uses protobuf v3.17.3,
 	#however, honister provides v3.18.0. Hence checking out this branch for consistency.
-	git checkout tags/v3.18.0
+	git checkout tags/v3.19.4
 	cd ${WORKDIR}/build
 }
 
@@ -66,6 +66,11 @@ EXTRA_OECMAKE=" \
 	-Donnxruntime_DEV_MODE=OFF \
 	-Donnxruntime_ENABLE_PYTHON=ON \
 "
+
+# Workaround for network access issue during compile step
+# this needs to be fixed in the recipes buildsystem to move
+# this such that it can be accomplished during do_fetch task
+do_compile[network] = "1"
 
 do_install() {
 	install -d ${D}${libdir}

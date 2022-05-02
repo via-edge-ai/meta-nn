@@ -13,10 +13,10 @@ RPROVIDES:${PN} = "libvendor-nn-hal"
 
 TOOLCHAIN = "clang"
 
-SRCREV = "v${PV}"
+SRCREV = "bc8cacae736c569fd3caf343e7ad7a9e5534bf27"
 BRANCH = "branches/android-nn-driver_${PV_MAJOR}_${PV_MINOR}"
 
-SRC_URI = "git://github.com/ARM-software/android-nn-driver.git;branch=${BRANCH} \
+SRC_URI = "git://github.com/ARM-software/android-nn-driver.git;protocol=https;branch=${BRANCH} \
            file://0001-don-t-use-__system_properties.patch \
            file://0002-use-syncWait-instead-of-sync_wait.patch \
            file://0003-add-missing-cfloat-include.patch \

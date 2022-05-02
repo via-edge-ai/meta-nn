@@ -22,6 +22,11 @@ TF_ARGS_EXTRA += " \
          --copt -DCL_DELEGATE_NO_GL \
 "
 
+# Workaround for network access issue during compile step
+# this needs to be fixed in the recipes buildsystem to move
+# this such that it can be accomplished during do_fetch task
+do_compile[network] = "1"
+
 do_install:append() {
         # install external delegates
         install -d ${D}${libdir}

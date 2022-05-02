@@ -9,10 +9,10 @@ inherit cmake
 PV_MAJOR = "${@d.getVar('PV',d,1).split('.')[0]}"
 PV_MINOR = "${@d.getVar('PV',d,1).split('.')[1]}"
 
-SRCREV = "v${PV}"
+SRCREV = "5e9965cae1cc6162649910f423ebd86001fc1931"
 BRANCH_ARMNN = "branches/armnn_${PV_MAJOR}_${PV_MINOR}"
 
-SRC_URI = "git://github.com/ARM-software/armnn.git;branch=${BRANCH_ARMNN} \
+SRC_URI = "git://github.com/ARM-software/armnn.git;protocol=https;branch=${BRANCH_ARMNN} \
            file://0001-fix-bd-compilation-issue.patch \
            file://0001-search-for-system-opencl-header.patch \
            "
