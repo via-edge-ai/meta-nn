@@ -13,7 +13,7 @@ RPROVIDES:${PN} = "libvendor-nn-hal"
 
 TOOLCHAIN = "clang"
 
-SRCREV = "bc8cacae736c569fd3caf343e7ad7a9e5534bf27"
+SRCREV = "558a1d4ed904f5f7d04781bc3405ee77669563d0"
 BRANCH = "branches/android-nn-driver_${PV_MAJOR}_${PV_MINOR}"
 
 SRC_URI = "git://github.com/ARM-software/android-nn-driver.git;protocol=https;branch=${BRANCH} \

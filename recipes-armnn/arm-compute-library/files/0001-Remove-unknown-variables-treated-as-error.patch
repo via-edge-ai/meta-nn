@@ -1,0 +1,26 @@
+From 19b2dff6412b9685cedbd42f4061f7af8f58e5b2 Mon Sep 17 00:00:00 2001
+From: Suhrid Subramaniam <suhrid.subramaniam@mediatek.com>
+Date: Thu, 17 Mar 2022 13:02:46 -0700
+Subject: [PATCH] Remove unknown variables treated as error
+
+Signed-off-by: Suhrid Subramaniam <suhrid.subramaniam@mediatek.com>
+---
+ SConstruct | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/SConstruct b/SConstruct
+index 388dcd5c1..538ea3aba 100644
+--- a/SConstruct
++++ b/SConstruct
+@@ -484,11 +484,3 @@ if env['exceptions']:
+         print("WARNING: Building tests for bare metal and armv7a is not supported")
+         Return()
+     SConscript('./tests/SConscript', variant_dir='%s/tests' % build_path, duplicate=0)
+-
+-# Unknown variables are not allowed
+-# Note: we must delay the call of UnknownVariables until after
+-# we have applied the Variables object to the construction environment
+-unknown = vars.UnknownVariables()
+-if unknown:
+-    print("Unknown variables: %s" % " ".join(unknown.keys()))
+-    Exit(1)

@@ -9,7 +9,7 @@ inherit cmake
 PV_MAJOR = "${@d.getVar('PV',d,1).split('.')[0]}"
 PV_MINOR = "${@d.getVar('PV',d,1).split('.')[1]}"
 
-SRCREV = "5e9965cae1cc6162649910f423ebd86001fc1931"
+SRCREV = "b254731ff27a40f382695d5753e1b537c4736bfa"
 BRANCH_ARMNN = "branches/armnn_${PV_MAJOR}_${PV_MINOR}"
 
 SRC_URI = "git://github.com/ARM-software/armnn.git;protocol=https;branch=${BRANCH_ARMNN} \

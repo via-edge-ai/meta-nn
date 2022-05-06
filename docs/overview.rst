@@ -11,7 +11,7 @@ Supported frameworks
         :header: "Frameworks", "Version", "Supported platforms"
 
         "Tensorflow-lite", 2.6.1, "all"
-        "ARMNN", 21.11, "all"
+        "ARMNN", 22.02, "all"
         "NNAPI", 1.3, "i350, i500"
 	"Onnxruntime", 1.8, "all"
 

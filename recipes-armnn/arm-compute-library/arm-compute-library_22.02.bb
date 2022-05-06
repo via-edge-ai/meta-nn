@@ -1,7 +1,7 @@
 SUMMARY = "The ARM Computer Vision and Machine Learning library"
 DESCRIPTION = "The ARM Computer Vision and Machine Learning library is a set of functions optimised for both ARM CPUs and GPUs."
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=9598101cf48c5f479cfda9f3fc6fc566"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=f3c5879801d3cffc4ac2399f2b8e8ec5"
 
 inherit scons
 
@@ -9,9 +9,10 @@ inherit scons
 
 SRC_URI = "git://github.com/ARM-software/ComputeLibrary.git;protocol=https;branch=master;name=arm-compute-library \
            file://0001-enable-yocto-build.patch \
+           file://0001-Remove-unknown-variables-treated-as-error.patch \
            "
 
-SRCREV = "91ee4d0a9ef128b16936921470a0e3ffef347536"
+SRCREV = "8f587de9214dbc3aee4ff4eeb2ede66747769b19"
 
 EXTRA_OESCONS:aarch64 = "arch=arm64-v8a extra_cxx_flags="-fPIC" Werror=0 asserts=0 debug=0 benchmark_tests=0 validation_tests=0 embed_kernels=1 openmp=1 opencl=1 neon=1 opencl=1 set_soname=1"
 
