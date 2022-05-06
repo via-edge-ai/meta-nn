@@ -23,7 +23,7 @@ DEPENDS += " \
     flatbuffers-native \
     arm-compute-library \
     opencl-headers \
-    opencl-headers-cxx \
+    opencl-clhpp \
     tensorflow-lite \
 "
 TARGET_CFLAGS += " -Wno-uninitialized "

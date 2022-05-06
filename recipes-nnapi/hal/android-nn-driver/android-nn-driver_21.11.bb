@@ -31,7 +31,7 @@ SRC_URI = "git://github.com/ARM-software/android-nn-driver.git;protocol=https;br
 
 S = "${WORKDIR}/git"
 
-DEPENDS = " armnn nnapi-headers nnapi-support tensorflow-lite opencl-headers opencl-headers-cxx "
+DEPENDS = " armnn nnapi-headers nnapi-support tensorflow-lite opencl-headers opencl-clhpp "
 
 TUNE_CCARGS:remove = "-mcpu=cortex-a73.cortex-a53"
 
