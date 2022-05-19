@@ -2,6 +2,10 @@ SUMMARY = "XtensaANN driver for the Android Neural Networks API"
 DESCRIPTION = "Linux port of the XternsANN driver for NNAPI"
 LICENSE = "CLOSED"
 
+inherit features_check
+
+REQUIRED_DISTRO_FEATURES = "nda-mtk"
+
 # Prebuilt binaries are available here: https://gitlab.com/mediatek/aiot/nda-cadence/prebuilts/
 
 COMPATIBLE_MACHINE = "(i500-*|i350-*)"

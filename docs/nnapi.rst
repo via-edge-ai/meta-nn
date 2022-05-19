@@ -27,7 +27,7 @@ Xtensa HAL (VP6)
 This is the HAL to use the VP6 APU from Cadence.
 
 .. note::
-    A licence agreement with Cadence is needed in order to use the Xtensa HAL.
+    A licence agreement with Mediatek is needed in order to use the Xtensa HAL. If you signed one, you can add ``NDA_BUILD = "1"`` in your local.conf to be able to use it.
 
 Building and adding the package
 -------------------------------
