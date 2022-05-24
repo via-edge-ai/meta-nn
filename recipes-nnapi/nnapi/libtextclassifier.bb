@@ -10,7 +10,7 @@ SRC_URI = " \
     git://chromium.googlesource.com/chromiumos/third_party/libtextclassifier;protocol=https;branch=${BRANCH_NAME} \
     file://0001-libtextclassifier-add-Makefiles.patch \
     "
-SRCREV = "${AUTOREV}"
+SRCREV = "8b1eb41e82a6b7004cc03c46b0b18288ef9d13bd"
 
 S = "${WORKDIR}/git"
 
