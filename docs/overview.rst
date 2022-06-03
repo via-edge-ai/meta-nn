@@ -13,7 +13,7 @@ Supported frameworks
         "Tensorflow-lite", 2.9.0, "all"
         "ARMNN", 22.02, "all"
         "NNAPI", 1.3, "i350, i500"
-	"Onnxruntime", 1.8, "all"
+	"Onnxruntime", 1.10, "all"
 
 Building AI/ML image
 --------------------
