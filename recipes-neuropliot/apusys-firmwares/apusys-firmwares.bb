@@ -9,7 +9,7 @@ COMPATIBLE_MACHINE = "i1200-demo"
 SRCREV = "2c0cf45d10eecc538e39850c38a5250c63a42077"
 BRANCH = "${SOC_FAMILY}"
 
-SRC_URI += "git://gitlab.com/mediatek/aiot/nda/mtk-apusys-firmware.git;protocol=ssh;branch=${BRANCH} \
+SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-apusys-firmware.git;protocol=ssh;branch=${BRANCH} \
            "
 
 S = "${WORKDIR}/git"
