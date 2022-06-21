@@ -10,7 +10,7 @@ DEPENDS += " libcxx ncurses "
 RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow "
 RPROVIDES:${PN} = " libapu_mdw libedma libmdla_ut libvpu5 libneuron "
 
-SRCREV = "bc5fa4f8ae441132d095025d02c5f8db16b1db32"
+SRCREV = "4779237b2b8cc8e58bbd396921304496966cf228"
 BRANCH = "${SOC_FAMILY}"
 
 SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-neuropilot-prebuilts.git;protocol=ssh;branch=${BRANCH} \
