@@ -10,8 +10,8 @@ DEPENDS += " libcxx ncurses "
 RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow "
 RPROVIDES:${PN} = " libapu_mdw libedma libmdla_ut libvpu5 libneuron "
 
-SRCREV = "21ec5390de493524ef78e309847decbe93c192f0"
-BRANCH = "${SOC_FAMILY}"
+SRCREV = "91fc66ec85096ed77bff4abacca0177db9bd3ff6"
+BRANCH = "${DISTRO_CODENAME}"
 
 SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-neuropilot-prebuilts.git;protocol=ssh;branch=${BRANCH} \
            "
@@ -22,7 +22,7 @@ do_configure[noexec] = "1"
 do_buildclean[noexec] = "1"
 
 do_install() {
-	oe_runmake install PWD=${S} LIBDIR=${D}${libdir} INCLUDEDIR=${D}${includedir} DATADIR=${D}${datadir} SBINDIR=${D}${sbindir}
+	oe_runmake install PWD=${S}/${SOC_FAMILY} LIBDIR=${D}${libdir} INCLUDEDIR=${D}${includedir} DATADIR=${D}${datadir} SBINDIR=${D}${sbindir}
 	chown -R root:root ${D}${libdir}/
 }
 
