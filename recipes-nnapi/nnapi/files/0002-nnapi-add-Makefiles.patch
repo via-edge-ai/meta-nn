@@ -197,7 +197,8 @@ index 000000000..6219ac948
 +	NeuralNetworks.cpp \
 +	TypeManager.cpp \
 +	VersionedInterfaces.cpp \
-+	$(ROOT_DIR)/nn/chromeos/versioned_drivers.cpp
++	$(ROOT_DIR)/nn/chromeos/versioned_drivers.cpp \
++	$(ROOT_DIR)/nn/chromeos/startup.cpp
 +
 +OBJECTS := $(SRC:.cpp=.o)
 +TARGET := $(OUT)/libruntime.a
