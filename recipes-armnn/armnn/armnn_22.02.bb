@@ -20,12 +20,13 @@ SRC_URI = "git://github.com/ARM-software/armnn.git;protocol=https;branch=${BRANC
 S = "${WORKDIR}/git"
 
 DEPENDS += " \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
     flatbuffers-native \
     arm-compute-library \
     opencl-headers \
     opencl-clhpp \
-    tensorflow-lite \
 "
+
 TARGET_CFLAGS += " -Wno-uninitialized "
 
 RDEPENDS:${PN} = " arm-compute-library "

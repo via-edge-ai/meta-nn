@@ -1,6 +1,14 @@
 require nnapi-0.0.1-r166.inc
 
-DEPENDS = "nnapi-support tensorflow-lite nnapi-support openssl libtextclassifier virtual/libvendor-nn-hal gtest gmock"
+DEPENDS += " \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
+    nnapi-support \
+    openssl \
+    libtextclassifier \
+    virtual/libvendor-nn-hal \
+    gtest gmock \
+"
+
 RDEPENDS:${PN} = "nnapi-support libvendor-nn-hal"
 RDEPENDS:${PN}-cts = "nnapi nnapi-support libtextclassifier "
 

@@ -1,19 +1,20 @@
-From 237c5adaac4e49f55dc628094a06e78008f57c8d Mon Sep 17 00:00:00 2001
-From: JoyingKyc <joying.kuo@mediatek.com>
-Date: Thu, 28 Apr 2022 17:56:55 +0800
+From 4a4dd429badd9939ba90374168054e20ea389701 Mon Sep 17 00:00:00 2001
+From: Julien STEPHAN <jstephan@baylibre.com>
+Date: Fri, 23 Sep 2022 11:06:07 +0200
 Subject: [PATCH] tensorflow-lite: add external delegate
 
 Add External Delegate for building libtensorflowlite.so to support the demo APP (Gst-inference)
 
+Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
 ---
  tensorflow/lite/BUILD | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/tensorflow/lite/BUILD b/tensorflow/lite/BUILD
-index 8414dd7fe67..a0906771c1b 100644
+index 83bac756f13..faa089a9fb5 100644
 --- a/tensorflow/lite/BUILD
 +++ b/tensorflow/lite/BUILD
-@@ -393,6 +393,7 @@ cc_library(
+@@ -431,6 +431,7 @@ cc_library(
          ":string",
          ":type_to_tflitetype",
          ":util",
@@ -21,7 +22,7 @@ index 8414dd7fe67..a0906771c1b 100644
          "//tensorflow/lite/c:common",
          "//tensorflow/lite/core/api",
          "//tensorflow/lite/core/api:verifier",
-@@ -433,6 +434,7 @@ cc_library(
+@@ -472,6 +473,7 @@ cc_library(
          ":string",
          ":type_to_tflitetype",
          ":util",
@@ -29,15 +30,15 @@ index 8414dd7fe67..a0906771c1b 100644
          "//tensorflow/lite/c:common",
          "//tensorflow/lite/core/api",
          "//tensorflow/lite/core/api:verifier",
-@@ -502,6 +504,7 @@ cc_library(
-         ":type_to_tflitetype",
-         ":util",
+@@ -547,6 +549,7 @@ cc_library(
          ":version",
+         "@flatbuffers//:runtime_cc",
+         "@ruy//ruy:denormal",
 +        "//tensorflow/lite/delegates/external:external_delegate",
          "//tensorflow/lite/c:c_api_types",
          "//tensorflow/lite/c:common",
-         "//tensorflow/lite/core/api",
-@@ -807,6 +810,7 @@ cc_test(
+         "//tensorflow/lite/c:common_internal",
+@@ -862,6 +865,7 @@ cc_test(
          ":string",
          ":string_util",
          ":util",
@@ -45,3 +46,5 @@ index 8414dd7fe67..a0906771c1b 100644
          "//tensorflow/lite/c:c_api_types",
          "//tensorflow/lite/c:common",
          "//tensorflow/lite/delegates/utils:simple_delegate",
+-- 
+2.25.1

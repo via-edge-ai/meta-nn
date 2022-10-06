@@ -1,7 +1,17 @@
 require xtensa-ann.inc
 
-DEPENDS = " libapu nnapi-headers nnapi-support libsystem tensorflow-lite "
-RDEPENDS:${PN} = " nnapi-support tensorflow-lite "
+DEPENDS = " \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
+    libapu \
+    nnapi-headers \
+    nnapi-support \
+    libsystem \
+"
+
+RDEPENDS:${PN} = " \
+    nnapi-support \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
+"  
 
 do_install:append() {
     install -d ${D}/${libdir}

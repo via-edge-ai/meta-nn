@@ -1,6 +1,9 @@
 require nnapi-0.0.1-r166.inc
 
-DEPENDS = " nnapi-support tensorflow-lite"
+DEPENDS += " \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
+    nnapi-support \
+"
 
 PROVIDES = "virtual/libvendor-nn-hal"
 RPROVIDES:${PN} = "libvendor-nn-hal"

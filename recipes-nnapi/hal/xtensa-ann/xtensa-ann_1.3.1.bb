@@ -16,8 +16,18 @@ SRC_URI += "git://gitlab.com/mediatek/aiot/team-baylibre/xtensa_ann.git;protocol
 
 S = "${WORKDIR}/git"
 
-DEPENDS = " libapu nnapi-headers nnapi-support libsystem tensorflow-lite "
-RDEPENDS:${PN} = " nnapi-support tensorflow-lite "
+DEPENDS = " \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
+    libapu \
+    nnapi-headers \
+    nnapi-support \
+    libsystem \
+"
+
+RDEPENDS:${PN} = " \
+    nnapi-support \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
+"
 
 TUNE_CCARGS:remove = "-mcpu=cortex-a73.cortex-a53"
 

@@ -1,5 +1,8 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+inherit features_check
+REQUIRED_DISTRO_FEATURES = "tflite"
+
 SRC_URI += " \
            file://0001-add-external-gpu-delegate.patch \
            file://0001-add-external-nnapi-delegate.patch \
