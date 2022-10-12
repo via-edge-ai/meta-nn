@@ -20,7 +20,7 @@ SRC_URI = "git://github.com/ARM-software/armnn.git;protocol=https;branch=${BRANC
 S = "${WORKDIR}/git"
 
 DEPENDS += " \
-    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tensorflowlite-prebuilt', 'tensorflow-lite', d)} \
     flatbuffers-native \
     arm-compute-library \
     opencl-headers \

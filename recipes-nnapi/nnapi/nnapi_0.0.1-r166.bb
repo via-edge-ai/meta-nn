@@ -1,7 +1,7 @@
 require nnapi-0.0.1-r166.inc
 
 DEPENDS += " \
-    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tesorflowlite-prebuilt', 'tensorflow-lite', d)} \
+    ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tensorflowlite-prebuilt', 'tensorflow-lite', d)} \
     nnapi-support \
     openssl \
     libtextclassifier \

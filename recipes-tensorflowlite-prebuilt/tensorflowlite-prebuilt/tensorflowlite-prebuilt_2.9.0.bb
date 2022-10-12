@@ -1,7 +1,8 @@
 DESCRIPTION = "Prebuilt libraries of TensorflowLite"
-LICENSE = "LicenseRef-MediaTek-AIoT-SLA-1"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=8c0955bebf11ce7b765fb08bf037af92"
+LICENSE = "BSD-3-Clause & Apache-2.0"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=01bb7fe1aa5c0508107d2d7a87af3a9a"
 
+inherit features_check
 REQUIRED_DISTRO_FEATURES = "tflite-prebuilt"
 
 DEPENDS += " libcxx ncurses "
@@ -15,7 +16,7 @@ RDEPENDS:${PN} += " \
     python3-pillow \
 "
 
-SRCREV = "5992d2808148426f5932e9e56db9fed9e050d72b"
+SRCREV = "27cc82f3b9c758283be0512edeb61bf09a7c4166"
 
 SRC_URI += "${AIOT_RITY_URI}/tensorflowlite-prebuilt.git;protocol=ssh;branch=main \
            "
