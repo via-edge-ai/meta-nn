@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c25f59288708e3fd9961c9e6142aafee"
 
 inherit features_check
 REQUIRED_DISTRO_FEATURES = "nda-mtk"
-COMPATIBLE_MACHINE = "i1200-demo"
+COMPATIBLE_MACHINE = "mt8395"
 
 DEPENDS += " libcxx ncurses "
 RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow "

@@ -2,7 +2,7 @@ DESCRIPTION = "Mediatek APUSYS Out-of-tree kernel driver"
 LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=16de935ebcebe2420535844d4f6faefc"
 
-COMPATIBLE_MACHINE = "i1200-demo"
+COMPATIBLE_MACHINE = "mt8395"
 
 inherit module
 
