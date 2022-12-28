@@ -8,7 +8,16 @@ COMPATIBLE_MACHINE = "mt8395"
 
 DEPENDS += " libcxx ncurses "
 RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow "
-RPROVIDES:${PN} = " libapu_mdw libedma libmdla_ut libvpu5 libneuron "
+
+PROVIDES = " \
+	virtual/libneuron \
+	virtual/ncc-tflite \
+"
+
+RPROVIDES:${PN} = " \
+	libneuron \
+	ncc-tflite \
+"
 
 SRCREV = "0e9448659b0f42bd4f3bb7bddb57c1ec4f781696"
 BRANCH = "${DISTRO_CODENAME}"
