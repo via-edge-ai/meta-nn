@@ -4,10 +4,9 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=16de935ebcebe2420535844d4f6faefc"
 
 inherit module
 
-SRCREV:mt8195 = "9a3f0abe50a0b97d756d47c9e3d20f3c2d9934b5"
-SRCREV:mt8188 = "760eef7b820e982d4ace756c59bbe7ae7f871da8"
+SRCREV = "a38db090ef3aa260f53d553cd6d8ed98e0e22942"
 
-BRANCH = "${SOC_FAMILY}"
+BRANCH = "android13"
 
 SRC_URI += "git://gitlab.com/mediatek/aiot/bsp/mtk-apusys-driver.git;protocol=https;branch=${BRANCH} \
 "
