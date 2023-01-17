@@ -6,7 +6,7 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES = "nda-mtk"
 
 DEPENDS += " libcxx ncurses "
-RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow "
+RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow python3-numpy "
 
 PROVIDES = " \
 	virtual/libneuron \
@@ -20,38 +20,26 @@ RPROVIDES:${PN} = " \
 
 BRANCH = "${DISTRO_CODENAME}"
 
-SRCREV = "f929d5176893d1d94cba2ebae3a5854710c2cf75"
+SRCREV = "eb5aac3d62cf707033a0e7622cc8be0df9f1b4f5"
 SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-neuropilot-prebuilts.git;protocol=ssh;branch=${BRANCH} \
 "
 
 S = "${WORKDIR}/git"
 
-# Universal Neuron SDK (NP6 and later) needs hw settings. Handle hw settings installation for specific platforms.
-HW_SETTINGS_REQUIRE = "${@bb.utils.contains_any('SOC_FAMILY', 'mt8188', '1', '0', d)}"
+NP_VERSION = "6"
+MDW_VERSION="android13"
 
 do_configure[noexec] = "1"
 do_buildclean[noexec] = "1"
 
-EXTRA_OEMAKE = ' \
-	HW_SETTINGS_INSTALL=${HW_SETTINGS_REQUIRE} \
-'
-
 do_install() {
-	if [ ${HW_SETTINGS_REQUIRE} = 1 ]; then
-		bbplain "${SOC_FAMILY} requires hw settings"
-		install -d ${D}/${sysconfdir}
-		chown -R root:root ${D}/${sysconfdir}
-		oe_runmake install PWD=${S}/${SOC_FAMILY} LIBDIR=${D}${libdir} INCLUDEDIR=${D}${includedir} DATADIR=${D}${datadir} SBINDIR=${D}${sbindir} ETCDIR=${D}${sysconfdir}
-	else
-		oe_runmake install PWD=${S}/${SOC_FAMILY} LIBDIR=${D}${libdir} INCLUDEDIR=${D}${includedir} DATADIR=${D}${datadir} SBINDIR=${D}${sbindir}
-	fi
+	oe_runmake install PWD=${S} LIBDIR=${D}${libdir} INCLUDEDIR=${D}${includedir} DATADIR=${D}${datadir} SBINDIR=${D}${sbindir} NP_VER=${NP_VERSION} MDW_VER=${MDW_VERSION}
 
 	chown -R root:root ${D}${libdir}/
 }
 
 FILES:${PN} += " \
 	${datadir} ${libdir}/*.so \
-	${@bb.utils.contains('HW_SETTINGS_REQUIRE', '1', '${sysconfdir}/*', '', d)} \
 "
 
 FILES_SOLIBSDEV = ""
