@@ -6,7 +6,7 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES = "nda-mtk"
 
 SRCREV:mt8195 = "4384097490d9b277e9c7f7bbf3b84286dd8519a1"
-SRCREV:mt8188 = "14fb51525d154761852b8e8477ec59aa6c394e1c"
+SRCREV:mt8188 = "9c08e0beaf59d216a2c1d8314fee12202a189641"
 BRANCH = "${SOC_FAMILY}"
 
 SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-apusys-firmware.git;protocol=ssh;branch=${BRANCH} \
