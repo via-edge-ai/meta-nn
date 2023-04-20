@@ -1,0 +1,791 @@
+From 297bdfea5a1c6332323eeb7e325f041c7c3a7e6b Mon Sep 17 00:00:00 2001
+From: "kidd-kw.chen" <kidd-kw.chen@mediatek.com>
+Date: Thu, 27 Apr 2023 19:36:16 +0800
+Subject: [PATCH 1/3] nnstreamer: Add tensor filter: neuronsdk
+
+Add implementation of neuronsdk tensor filter.
+
+Signed-off-by: kidd-kw.chen <kidd-kw.chen@mediatek.com>
+---
+ ext/nnstreamer/tensor_filter/meson.build      |  24 +
+ .../tensor_filter/tensor_filter_neuronsdk.cc  | 608 ++++++++++++++++++
+ meson.build                                   |  13 +
+ meson_options.txt                             |   3 +-
+ packaging/nnstreamer.spec                     |  30 +-
+ 5 files changed, 676 insertions(+), 2 deletions(-)
+ create mode 100644 ext/nnstreamer/tensor_filter/tensor_filter_neuronsdk.cc
+
+diff --git a/ext/nnstreamer/tensor_filter/meson.build b/ext/nnstreamer/tensor_filter/meson.build
+index ed7b75ca..6c54b22d 100644
+--- a/ext/nnstreamer/tensor_filter/meson.build
++++ b/ext/nnstreamer/tensor_filter/meson.build
+@@ -62,6 +62,30 @@ if armnn_support_is_available
+     dependencies: nnstreamer_filter_armnn_deps)
+ endif
+ 
++if neuronsdk_support_is_available
++  filter_sub_neuronsdk_sources = [
++    'tensor_filter_neuronsdk.cc'
++  ]
++
++  nnstreamer_filter_neuronsdk_deps = neuronsdk_support_deps + [glib_dep, gst_dep, nnstreamer_dep ]
++
++  neuronsdk_plugin_lib = shared_library('nnstreamer_filter_neuronsdk',
++    filter_sub_neuronsdk_sources,
++    dependencies: nnstreamer_filter_neuronsdk_deps,
++    install: true,
++    install_dir: filter_subplugin_install_dir
++  )
++  static_library('nnstreamer_filter_neuronsdk',
++    filter_sub_neuronsdk_sources,
++    dependencies: nnstreamer_filter_neuronsdk_deps,
++    install: true,
++    install_dir: nnstreamer_libdir
++  )
++
++  neuronsdk_plugin_dep = declare_dependency(link_with: neuronsdk_plugin_lib,
++    dependencies: nnstreamer_filter_neuronsdk_deps)
++endif
++
+ tf_ver_dep = disabler()
+ if tf_support_is_available
+   tf_ver = tf_support_deps[0].version()
+diff --git a/ext/nnstreamer/tensor_filter/tensor_filter_neuronsdk.cc b/ext/nnstreamer/tensor_filter/tensor_filter_neuronsdk.cc
+new file mode 100644
+index 00000000..ecea76aa
+--- /dev/null
++++ b/ext/nnstreamer/tensor_filter/tensor_filter_neuronsdk.cc
+@@ -0,0 +1,608 @@
++/* SPDX-License-Identifier: LGPL-2.1-only */
++/**
++ * GStreamer Tensor_Filter, NeuronSDK Module
++ * Copyright (C) 2023 Kidd-KW.Chen <kidd-kw.chen@mediatek.com>
++ */
++/**
++ * @file	tensor_filter_neuronsdk.cc
++ * @date	19 April 2023
++ * @brief	NeuronSDK module for tensor_filter gstreamer plugin
++ * @see		http://github.com/nnstreamer/nnstreamer
++ * @author	
++ * @bug		No known bugs except for NYI items
++ *
++ * This is the per-NN-framework plugin (NeuronSDK) for tensor_filter.
++ *
++ * @todo 
++ */
++
++#include <stdint.h>
++
++#include <glib.h>
++#include <nnstreamer_cppplugin_api_filter.hh>
++#include <nnstreamer_log.h>
++#include <nnstreamer_util.h>
++#include <tensor_common.h>
++
++#include "neuron/api/RuntimeV2.h"
++
++#include <algorithm>
++#include <dlfcn.h>
++#include <iostream>
++#include <sstream>
++#include <string>
++#include <unistd.h>
++#include <vector>
++#include <map>
++
++
++using nnstreamer::tensor_filter_subplugin;
++
++namespace nnstreamer
++{
++namespace neuronsdk
++{
++
++#ifdef __cplusplus
++extern "C" {
++#endif /* __cplusplus */
++void _init_filter_neuronsdk (void) __attribute__((constructor));
++void _fini_filter_neuronsdk (void) __attribute__((destructor));
++#ifdef __cplusplus
++}
++#endif /* __cplusplus */
++
++
++typedef struct {
++  bool disable_sync_input;
++  bool disable_invalidate_output;
++  bool debug;
++  gint64 inference_time_acc;
++  gint64 inference_time_count;
++  QoSOptions qos;
++} neuronsdk_option;
++
++inline void* LoadFunc(void* lib_handle, const char* name) {
++    if (lib_handle == nullptr) { std::abort(); }
++    void* fn = dlsym(lib_handle, name);
++    if (fn == nullptr) {
++        ml_loge("Unable to open Neuron Runtime function [%s] Because %s", name,  dlerror());
++        throw std::system_error (ENODEV, std::system_category (), "Cannot to open neuron runtime function");
++    }
++    return fn;
++}
++
++// typedef to the functions pointer signatures.
++
++typedef
++int (*FnNeuronRuntime_getVersion)(NeuronVersion *version);
++
++typedef
++int (*FnNeuronRuntimeV2_create)(const char* pathToDlaFile, size_t nbThreads, void** runtime, size_t back_log);
++
++typedef
++int (*FnNeuronRuntimeV2_getInputSize)(void* runtime, uint64_t handle, size_t* size);
++
++typedef
++int (*FnNeuronRuntimeV2_getOutputSize)(void* runtime, uint64_t handle, size_t* size);
++
++typedef
++int (*FnNeuronRuntimeV2_getInputNumber)(void* runtime, size_t* size);
++
++typedef
++int (*FnNeuronRuntimeV2_getOutputNumber)(void* runtime, size_t* size);
++
++typedef
++int (*FnNeuronRuntimeV2_enqueue)(void* runtime, AsyncInferenceRequest request, uint64_t* job_id);
++
++typedef
++int (*FnNeuronRuntimeV2_setQoSOption)(void* runtime, const QoSOptions *qosOption);
++
++typedef
++int (*FnNeuronRuntimeV2_run)(void* runtime, SyncInferenceRequest req);
++
++typedef
++void (*FnNeuronRuntimeV2_release)(void* runtime);
++
++static FnNeuronRuntime_getVersion fnNeuronRuntime_getVersion;
++static FnNeuronRuntimeV2_create fnNeuronRuntimeV2_create;
++static FnNeuronRuntimeV2_getInputSize fnNeuronRuntimeV2_getInputSize;
++static FnNeuronRuntimeV2_getOutputSize fnNeuronRuntimeV2_getOutputSize;
++static FnNeuronRuntimeV2_getInputNumber fnNeuronRuntimeV2_getInputNumber;
++static FnNeuronRuntimeV2_getOutputNumber fnNeuronRuntimeV2_getOutputNumber;
++static FnNeuronRuntimeV2_enqueue fnNeuronRuntimeV2_enqueue;
++static FnNeuronRuntimeV2_setQoSOption fnNeuronRuntimeV2_setQoSOption;
++static FnNeuronRuntimeV2_run fnNeuronRuntimeV2_run;
++static FnNeuronRuntimeV2_release fnNeuronRuntimeV2_release; 
++
++/**
++ * @brief Class for NeuronSDK subplugin.
++ */
++class tensor_filter_neuronsdk final : public tensor_filter_subplugin
++{
++    public:
++    static void init_filter_neuronsdk ();
++    static void fini_filter_neuronsdk ();
++
++    tensor_filter_neuronsdk ();
++    ~tensor_filter_neuronsdk ();
++
++    tensor_filter_subplugin &getEmptyInstance ();
++    void configure_instance (const GstTensorFilterProperties *prop);
++    void invoke (const GstTensorMemory *input, GstTensorMemory *output);
++    void getFrameworkInfo (GstTensorFilterFrameworkInfo &info);
++    int getModelInfo (model_info_ops ops, GstTensorsInfo &in_info, GstTensorsInfo &out_info);
++    int eventHandler (event_ops ops, GstTensorFilterFrameworkEventData &data);
++
++
++    private:
++    static const char *name;
++    static tensor_filter_neuronsdk *registeredRepresentation;
++
++    private:
++    static tensor_filter_neuronsdk *instance_;
++    void* runtime;
++    std::string model_path;
++    uint64_t thread_count;
++    uint64_t back_log;
++    neuronsdk_option neuron_option;
++    const GstTensorsInfo *input_info_ref;
++    const GstTensorsInfo *output_info_ref;
++
++    void cleanup ();
++    void initNeuronOption(neuronsdk_option* option);
++    void setTensorProp(const GstTensorFilterProperties *prop);
++    void parseCustomProp(const char *custom_prop, neuronsdk_option *opt);
++};
++
++const char *tensor_filter_neuronsdk::name = "neuronsdk";
++
++
++tensor_filter_neuronsdk *tensor_filter_neuronsdk::registeredRepresentation = nullptr;
++
++/** @brief Initialize this object for tensor_filter subplugin runtime register */
++void
++tensor_filter_neuronsdk::init_filter_neuronsdk (void)
++{
++    ml_logd("[neuronsdk] init_filter_neuronsdk");
++
++    registeredRepresentation
++        = tensor_filter_subplugin::register_subplugin<tensor_filter_neuronsdk> ();
++    nnstreamer_filter_set_custom_property_desc (name,
++      "disable-sync-input",   "Disable input sync in Neuron",
++      "disable-invalidate-output", "Disable output invalidation in Neuron",
++      "qos-preference", " 'NEURONRUNTIME_PREFER_PERFORMANCE', 'NEURONRUNTIME_PREFER_POWER', or 'NEURONRUNTIME_HINT_TURBO_BOOST' for the inference mode in runtime",
++      "qos-boostValue", "An integer in the range [0, 100] for the inference boost value in runtime. This value is viewed as a hint for the scheduler",
++      "qos-priority", "Set NEURONRUNTIME_PRIORITY_LOW, NEURONRUNTIME_PRIORITY_MED, NEURONRUNTIME_PRIORITY_HIGH for the inference priority to the scheduler",
++      nullptr);
++}
++
++/** @brief neuronsdk class constructor */
++void
++tensor_filter_neuronsdk::fini_filter_neuronsdk (void)
++{
++    ml_logd("[neuronsdk] fini_filter_neuronsdk");
++    assert (registeredRepresentation != nullptr);
++    tensor_filter_subplugin::unregister_subplugin (registeredRepresentation);
++}
++
++/** @brief initializer */
++void
++_init_filter_neuronsdk ()
++{
++    ml_logd("[neuronsdk] _init_filter_neuronsdk");
++    tensor_filter_neuronsdk::init_filter_neuronsdk ();
++}
++
++/** @brief finalizer */
++void
++_fini_filter_neuronsdk ()
++{
++    ml_logd("[neuronsdk] _fini_filter_neuronsdk");
++    tensor_filter_neuronsdk::fini_filter_neuronsdk ();
++}
++
++void
++tensor_filter_neuronsdk::cleanup () {
++    ml_logd("[neuronsdk] cleanup");
++
++    input_info_ref = nullptr;
++    output_info_ref= nullptr;
++
++    if (runtime) {
++        fnNeuronRuntimeV2_release(runtime);
++        runtime = nullptr;
++    }
++}
++
++void 
++tensor_filter_neuronsdk::initNeuronOption(neuronsdk_option* option) {
++    ml_logd("[neuronsdk] initNeuronOption");
++
++    if (option == nullptr)
++        return;
++
++    // Neuron QoS initial value
++    option->disable_sync_input = false;
++    option->disable_invalidate_output = false;
++    option->debug = false;
++    option->qos.abortTime = 0;
++    option->qos.applicationType = NEURONRUNTIME_APP_NORMAL;
++    option->qos.boostValue = 100;
++    option->qos.deadline = 0;
++    option->qos.delayedPowerOffTime = NEURONRUNTIME_POWER_OFF_TIME_DEFAULT;
++    option->qos.maxBoostValue = 100;
++    option->qos.minBoostValue = 0;
++    option->qos.powerPolicy = NEURONRUNTIME_POWER_POLICY_DEFAULT;
++    option->qos.preference = NEURONRUNTIME_PREFER_PERFORMANCE;
++    option->qos.priority = NEURONRUNTIME_PRIORITY_HIGH;
++    option->qos.profiledQoSData = nullptr;
++}
++
++void 
++tensor_filter_neuronsdk::setTensorProp(const GstTensorFilterProperties *prop) {
++    ml_logd("[neuronsdk] setTensorProp");
++    
++    if (neuron_option.debug) {
++        ml_logw("*********** Query input tensor *******************************************************");
++        ml_logw("input_layout = [%d, %d, %d, %d, %d, %d, %d, %d]", 
++            prop->input_layout[0], prop->input_layout[1], prop->input_layout[2], prop->input_layout[3], 
++            prop->input_layout[4], prop->input_layout[5], prop->input_layout[6], prop->input_layout[7]);
++
++        ml_logw("input_ranks = [%u, %u, %u, %u, %u, %u, %u, %u]", 
++            prop->input_ranks[0], prop->input_ranks[1], prop->input_ranks[2], prop->input_ranks[3], 
++            prop->input_ranks[4], prop->input_ranks[5], prop->input_ranks[6], prop->input_ranks[7]);
++
++        ml_logw("input_meta.format=%d .num_tensors=%d", prop->input_meta.format, prop->input_meta.num_tensors);
++        for (size_t i=0; i< prop->input_meta.num_tensors; i++) {
++            ml_logw("input_meta.info[%zu].name = %s .type = %d .dimension = [%u, %u, %u, %u, %u, %u, %u, %u]", 
++                i,
++                prop->input_meta.info[i].name,
++                prop->input_meta.info[i].type,
++                prop->input_meta.info[i].dimension[0],  prop->input_meta.info[i].dimension[1],  prop->input_meta.info[i].dimension[2],  prop->input_meta.info[i].dimension[3],
++                prop->input_meta.info[i].dimension[4],  prop->input_meta.info[i].dimension[5],  prop->input_meta.info[i].dimension[6],  prop->input_meta.info[i].dimension[7]);
++        }
++        ml_logw("**************************************************************************************\n");
++
++        
++        ml_logw("*********** Query output tensor ******************************************************");
++        ml_logw("output_layout =[%d, %d, %d, %d, %d, %d, %d, %d]", 
++            prop->output_layout[0], prop->output_layout[1], prop->output_layout[2], prop->output_layout[3], 
++            prop->output_layout[4], prop->output_layout[5], prop->output_layout[6], prop->output_layout[7]);
++
++        ml_logw("output_ranks = [%u, %u, %u, %u, %u, %u, %u, %u]", 
++            prop->output_ranks[0], prop->output_ranks[1], prop->output_ranks[2], prop->output_ranks[3], 
++            prop->output_ranks[4], prop->output_ranks[5], prop->output_ranks[6], prop->output_ranks[7]);
++        
++        ml_logw("output_meta.format=%d .num_tensors=%d", prop->output_meta.format, prop->output_meta.num_tensors);
++        for (size_t i=0; i< prop->output_meta.num_tensors; i++) {
++            ml_logw("output_meta.info[%zu].name = %s .type = %d .dimension = [%u, %u, %u, %u, %u, %u, %u, %u]", 
++                i,
++                prop->output_meta.info[i].name,
++                prop->output_meta.info[i].type,
++                prop->output_meta.info[i].dimension[0],  prop->output_meta.info[i].dimension[1],  prop->output_meta.info[i].dimension[2],  prop->output_meta.info[i].dimension[3],
++                prop->output_meta.info[i].dimension[4],  prop->output_meta.info[i].dimension[5],  prop->output_meta.info[i].dimension[6],  prop->output_meta.info[i].dimension[7]);
++        }
++        ml_logw("**************************************************************************************\n");
++    }
++
++    // Because NeuronSDK loads the dla file (compiled tflite model), not tflite model and 
++    // NeuronSDK doesn't have interfaces to extract input/output tensor information of dla file, 
++    // such as input tensor type, format, dimension and so on.
++    // So input/output tensor information need to be brought in from the tensor filter properties,
++    // such as 'inputlayout', 'inputtype', 'input', 'outputlayout', 'outputtype', 'output' and so on.
++
++    if (prop->input_meta.num_tensors == 0) {
++        cleanup ();
++        throw std::invalid_argument (
++            "User have to setup tensor-filter properties for input tensor, such as 'inputlayout', 'inputtype' and 'input'");
++    }
++
++    if (prop->output_meta.num_tensors == 0) {
++        cleanup ();
++        throw std::invalid_argument (
++            "User have to setup tensor-filter properties for output tensor, such as 'outputlayout', 'outputtype' and 'output' ");
++    }
++
++    input_info_ref = &prop->input_meta;
++    output_info_ref = &prop->output_meta;
++}
++
++void 
++tensor_filter_neuronsdk::parseCustomProp(const char *custom_prop, neuronsdk_option *option) {
++    if ((!custom_prop) || (strlen (custom_prop) == 0))
++        return;
++
++    ml_logd("[neuronsdk] parseCustomProp: %s", custom_prop);
++    std::stringstream ss(custom_prop);
++    std::string token;
++    std::map<std::string, std::string> key_value_pairs;
++
++    while (std::getline(ss, token, ',')) {
++        std::istringstream iss(token);
++        std::vector<std::string> key_value;
++        std::string sub_token;
++
++        while (std::getline(iss, sub_token, ':')) {
++            key_value.push_back(sub_token);
++        }
++
++        if (key_value.size() == 1) {
++            key_value_pairs[key_value[0]] = "true";
++        } else if (key_value.size() == 2) {
++            key_value_pairs[key_value[0]] = key_value[1];
++        } else {
++            ml_logw("find invalid property format: %s ", token.c_str());
++        }
++    }
++
++    ml_logd("*********** Custom properties *******************************************************");
++    for ( const auto &p : key_value_pairs )
++    {  
++        ml_logd("parse property (%s, %s) ", p.first.c_str(), p.second.c_str());
++
++        if (p.first.compare("debug") == 0) {
++            option->debug = true;
++        } else if (p.first.compare("disable-sync-input") == 0) {
++            option->disable_sync_input = true;
++        } else if (p.first.compare("disable-invalidate-output") == 0) {
++            option->disable_invalidate_output = true;
++        } else if (p.first.compare("qos-applicationType") == 0) {
++            // not active yet
++            ml_logw("qos-applicationType is reserved, not active yet");
++        } else if (p.first.compare("qos-abortTime") == 0) {
++            int value = std::stoi(p.second);
++            option->qos.abortTime = value;
++        } else if (p.first.compare("qos-boostValue") == 0) {
++            int value = std::stoi(p.second);
++            option->qos.abortTime = value;
++        } else if (p.first.compare("qos-deadline") == 0) {
++            int value = std::stoi(p.second);
++            option->qos.deadline = value;
++        } else if (p.first.compare("qos-delayedPowerOffTime") == 0) {
++            int value = std::stoi(p.second);
++            option->qos.delayedPowerOffTime = value;
++        } else if (p.first.compare("qos-maxBoostValue") == 0) {
++            // not active yet
++            ml_logw("qos-maxBoostValue is reserved, not active yet");
++        } else if (p.first.compare("qos-minBoostValue") == 0) {
++            // not active yet
++            ml_logw("qos-minBoostValue is reserved, not active yet");
++        } else if (p.first.compare("qos-powerPolicy") == 0) {
++            // not active yet
++            ml_logw("qos-applicationType is reserved, not active yet");
++        } else if (p.first.compare("qos-preference") == 0) {
++            if (p.second.compare("NEURONRUNTIME_PREFER_PERFORMANCE"))
++                option->qos.preference = NEURONRUNTIME_PREFER_PERFORMANCE;
++            else if (p.second.compare("NEURONRUNTIME_PREFER_POWER"))
++                option->qos.preference = NEURONRUNTIME_PREFER_POWER;
++            else if (p.second.compare("NEURONRUNTIME_HINT_TURBO_BOOST"))
++                option->qos.preference = NEURONRUNTIME_HINT_TURBO_BOOST;
++        } else if (p.first.compare("qos-priority") == 0) {
++            if (p.second.compare("NEURONRUNTIME_PRIORITY_HIGH"))
++                option->qos.priority = NEURONRUNTIME_PRIORITY_HIGH;
++            else if (p.second.compare("NEURONRUNTIME_PRIORITY_MED"))
++                option->qos.priority = NEURONRUNTIME_PRIORITY_MED;
++            else if (p.second.compare("NEURONRUNTIME_PRIORITY_LOW"))
++                option->qos.priority = NEURONRUNTIME_PRIORITY_LOW;
++        } 
++    }
++    ml_logd("**************************************************************************************\n");
++
++    auto status = fnNeuronRuntimeV2_setQoSOption(runtime, &neuron_option.qos);
++    if (status != NEURONRUNTIME_NO_ERROR) {
++        ml_logw("Failed to set QoS option");
++    }
++}
++
++/**
++ * @brief Internal instance for NeuronSDK registration.
++ */
++tensor_filter_neuronsdk *tensor_filter_neuronsdk::instance_ = nullptr;
++
++/**
++ * @brief Constructor for NeuronSDK subplugin.
++ */
++tensor_filter_neuronsdk::tensor_filter_neuronsdk () : 
++    runtime(nullptr), 
++    thread_count(1),
++    back_log(2048),
++    input_info_ref(nullptr),
++    output_info_ref(nullptr)
++{
++    ml_logd("[neuronsdk] tensor_filter_neuronsdk");
++
++    initNeuronOption(&neuron_option);
++}
++
++/**
++ * @brief Destructor for NeuronSDK subplugin.
++ */
++tensor_filter_neuronsdk::~tensor_filter_neuronsdk ()
++{
++  ml_logd("[neuronsdk] ~tensor_filter_neuronsdk");
++  
++  cleanup();
++}
++
++
++/**
++ * @brief Mandatory method to get empty object.
++ */
++tensor_filter_subplugin &
++tensor_filter_neuronsdk::getEmptyInstance ()
++{
++  ml_logd("[neuronsdk] getEmptyInstance");
++  return *(new tensor_filter_neuronsdk ());
++}
++
++/**
++ * @brief Mandatory method to configure instance
++ */
++void
++tensor_filter_neuronsdk::configure_instance (const GstTensorFilterProperties *prop)
++{
++    ml_logd("[neuronsdk] configure_instance");
++
++    auto lib_handle = dlopen("/usr/lib/libneuronusdk_runtime.mtk.so.6.2.3", RTLD_NOW | RTLD_LOCAL);
++    if (lib_handle == nullptr) {
++        ml_loge("Unable to open Neuron Runtime library, %s", dlerror());
++        throw std::system_error (ENODEV, std::system_category (), "Cannot open neuron runtime library");
++    }
++    ml_logd("Loaded neuron runtime library");
++
++#define LOAD(name) fn##name = reinterpret_cast<Fn##name>(LoadFunc(lib_handle, #name))
++    LOAD(NeuronRuntime_getVersion);
++    LOAD(NeuronRuntimeV2_create);
++    LOAD(NeuronRuntimeV2_release);
++    LOAD(NeuronRuntimeV2_enqueue);
++    LOAD(NeuronRuntimeV2_setQoSOption);
++    LOAD(NeuronRuntimeV2_run);
++    LOAD(NeuronRuntimeV2_getInputSize);
++    LOAD(NeuronRuntimeV2_getOutputSize);
++    LOAD(NeuronRuntimeV2_getInputNumber);
++    LOAD(NeuronRuntimeV2_getOutputNumber);
++    ml_logd("Loaded neuron runtime functions");
++
++    NeuronVersion version;
++    auto status = fnNeuronRuntime_getVersion(&version);
++
++    model_path = prop->model_files[0];
++    status = fnNeuronRuntimeV2_create(model_path.c_str(), thread_count, &runtime, back_log);
++    if (status != NEURONRUNTIME_NO_ERROR) {
++        ml_loge("Unable to create neuron runtime(v.%d.%d.%d) with dla file(%s), thread(%lu)", 
++            version.major, version.minor, version.patch, 
++            model_path.c_str(), thread_count);
++        cleanup ();
++        throw std::system_error (ENODEV, std::system_category (), "Cannot create neuron runtime.");
++    }
++    ml_logi("Created neuron runtime(v.%d.%d.%d) with dla file(%s), thread(%lu)", 
++        version.major, version.minor, version.patch,
++        model_path.c_str(), thread_count);
++
++    parseCustomProp(prop->custom_properties, &neuron_option);
++    setTensorProp(prop);
++}
++
++/**
++ * @brief Mandatory method to execute the model.
++ */
++void
++tensor_filter_neuronsdk::invoke (const GstTensorMemory *input, GstTensorMemory *output)
++{
++    ml_logd("[neuronsdk] invoke %p, debug=%d", runtime, neuron_option.debug);
++
++    gint64 start_time = 0;
++
++    if (neuron_option.debug)
++        start_time = g_get_real_time ();
++
++    assert (runtime);
++    assert (input_info_ref);
++    assert (output_info_ref);
++
++    size_t i = 0;
++    int status = NEURONRUNTIME_NO_ERROR;
++
++    size_t input_count = 0;
++    std::vector<IOBuffer> inputDescriptors;
++
++    size_t output_count = 0;
++    std::vector<IOBuffer> outputDescriptors;
++
++    status = fnNeuronRuntimeV2_getInputNumber(runtime, &input_count);
++    if (status != NEURONRUNTIME_NO_ERROR) {
++        ml_loge("Failed to get input number from dla file");
++        throw std::runtime_error ("Invoking neuron failed, unknown input");
++    }
++
++    inputDescriptors.reserve(input_count);
++    for (i = 0 ; i < input_count ; i++) {
++        inputDescriptors.push_back({input[i].data, input[i].size, -1});
++    }
++
++    status = fnNeuronRuntimeV2_getOutputNumber(runtime, &output_count);
++    if (status != NEURONRUNTIME_NO_ERROR) {
++        ml_loge("Failed to get output number from dla file");
++        throw std::runtime_error ("Invoking neuron failed, unknown output");
++    }
++
++    outputDescriptors.reserve(output_count);
++    for (i = 0 ; i < output_count ; i++) {
++        outputDescriptors.push_back({output[i].data, output[i].size, -1});
++    }
++
++    SyncInferenceRequest req { inputDescriptors.data(), outputDescriptors.data() };
++
++    status = fnNeuronRuntimeV2_run(runtime, req);
++    if (status != NEURONRUNTIME_NO_ERROR) {
++        ml_loge("Failed to inference");
++        throw std::runtime_error ("Invoking neuron failed.");
++    }
++
++    if (neuron_option.debug) {
++        gint64 end_time = g_get_real_time ();
++        neuron_option.inference_time_acc += (end_time - start_time);
++        neuron_option.inference_time_count++;
++        if (neuron_option.inference_time_count >= 100) {
++            gint64 inference_time_avg = (neuron_option.inference_time_acc / neuron_option.inference_time_count);
++            ml_logd ("Invoke() %" G_GINT64_FORMAT "ms, %s", inference_time_avg/1000, model_path.c_str());
++            neuron_option.inference_time_acc = 0;
++            neuron_option.inference_time_count = 0;
++        }
++    }
++}
++
++
++/**
++ * @brief Mandatory method to get the base information of subplugin.
++ */
++void
++tensor_filter_neuronsdk::getFrameworkInfo (GstTensorFilterFrameworkInfo &info)
++{
++  ml_logd("[neuronsdk] getFrameworkInfo");
++
++  info.name = name;
++  info.allow_in_place = 0;
++  info.allocate_in_invoke = 0;
++  info.run_without_model = 0;
++  info.verify_model_path = 1;
++  info.hw_list = nullptr;
++  info.num_hw = 0;
++  info.statistics = nullptr;
++}
++
++/**
++ * @brief Mandatory method to get the model information.
++ */
++int
++tensor_filter_neuronsdk::getModelInfo (
++    model_info_ops ops, GstTensorsInfo &in_info, GstTensorsInfo &out_info)
++{
++    ml_logd("[neuronsdk] getModelInfo");
++
++    if (ops == GET_IN_OUT_INFO) {
++        gst_tensors_info_copy (std::addressof (in_info), input_info_ref);
++        gst_tensors_info_copy (std::addressof (out_info), output_info_ref);
++
++        return 0;
++    }
++    return -ENOENT;
++}
++
++/**
++ * @brief Optional method to handle the event.
++ */
++int
++tensor_filter_neuronsdk::eventHandler (event_ops ops, GstTensorFilterFrameworkEventData &data)
++{
++    ml_logd("[neuronsdk] eventHandler");
++
++    UNUSED (ops);
++    UNUSED (data);
++    return -ENOENT;
++}
++
++
++} // neuronsdk
++} // namespace nnstreamer
+\ No newline at end of file
+diff --git a/meson.build b/meson.build
+index 56cca54b..92c6ab4d 100644
+--- a/meson.build
++++ b/meson.build
+@@ -314,6 +314,15 @@ if not get_option('armnn-support').disabled()
+   endif
+ endif
+ 
++# neuronsdk
++neuronsdk_dep = dependency('', required: false)
++if not get_option('neuronsdk-support').disabled()
++  neuronsdk_lib = cxx.find_library('neuronusdk_runtime.mtk', required: false)
++  if (neuronsdk_lib.found() and cxx.check_header('neuron/api/RuntimeAPI.h'))
++    neuronsdk_dep = declare_dependency(dependencies: [ neuronsdk_lib, thread_dep ])
++  endif
++endif
++
+ # mxnet
+ mxnet_dep = dependency('', required: false)
+ if not get_option('mxnet-support').disabled()
+@@ -376,6 +385,10 @@ features = {
+     'extra_deps': [ armnn_dep ],
+     'project_args': { 'ENABLE_ARMNN': 1 }
+   },
++  'neuronsdk-support': {
++    'extra_deps': [ neuronsdk_dep ],
++    'project_args': { 'ENABLE_NEURONSDK': 1 }
++  },
+   'orcc-support': {
+     'extra_deps': [ orc_dep, pg_orcc ],
+     'project_args': {'HAVE_ORC': 1},
+diff --git a/meson_options.txt b/meson_options.txt
+index 524f86c7..0f61744f 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -13,6 +13,7 @@ option('mvncsdk2-support', type: 'feature', value: 'auto')
+ # nnfw-runtime ( details in https://review.tizen.org/gerrit/p/platform/core/ml/nnfw )
+ option('nnfw-runtime-support', type: 'feature', value: 'auto')
+ option('armnn-support', type: 'feature', value: 'auto')
++option('neuronsdk-support', type: 'feature', value: 'auto')
+ option('orcc-support', type: 'feature', value: 'auto')
+ option('snpe-support', type: 'feature', value: 'auto')
+ option('protobuf-support', type: 'feature', value: 'auto')
+@@ -44,7 +45,7 @@ option('enable-tizen-sensor', type: 'boolean', value: false)
+ option('enable-edgetpu', type: 'boolean', value: false)
+ option('enable-openvino', type: 'boolean', value: false)
+ option('enable-vivante', type: 'boolean', value: false)
+-option('framework-priority-tflite', type: 'string', value: 'tensorflow-lite,nnfw,armnn,edgetpu', description: 'A comma separated prioritized list of neural network frameworks to open a .tflite file')
++option('framework-priority-tflite', type: 'string', value: 'tensorflow-lite,nnfw,armnn,edgetpu,neuronsdk', description: 'A comma separated prioritized list of neural network frameworks to open a .tflite file')
+ option('framework-priority-nb', type: 'string', value: '', description: 'A comma separated prioritized list of neural network frameworks to open a .nb file')
+ option('framework-priority-bin', type: 'string', value: '', description: 'A comma separated prioritized list of neural network frameworks to open a .bin file')
+ option('skip-tflite-flatbuf-check', type: 'boolean', value: false, description: 'Do not check the availability of flatbuf for tensorflow-lite build. In some systems, flatbuffers\' dependency cannot be found with meson.')
+diff --git a/packaging/nnstreamer.spec b/packaging/nnstreamer.spec
+index 02e51adc..6c2e6830 100644
+--- a/packaging/nnstreamer.spec
++++ b/packaging/nnstreamer.spec
+@@ -227,6 +227,11 @@ BuildRequires:  libarmcl
+ BuildConflicts: libarmcl-release
+ %endif
+ 
++# for neuronsdk
++%if 0%{?neuronsdk_support}
++BuildRequires: neuron-devel
++%endif
++
+ %if 0%{?edgetpu_support}
+ BuildRequires:	pkgconfig(edgetpu)
+ %endif
+@@ -400,6 +405,15 @@ Requires:	armnn
+ NNStreamer's tensor_filter subplugin of Arm NN Inference Engine.
+ %endif
+ 
++%if 0%{neuronsdk_support}
++%package neuronsdk
++Summary:	NNStreamer NeuronSDK support
++Requires:	nnstreamer = %{version}-%{release}
++Requires:	neuronsdk
++%description neuronsdk
++NNStreamer's tensor_filter subplugin of NeuronSDK Inference Engine.
++%endif
++
+ # Support vivante subplugin
+ %if 0%{?vivante_support}
+ %package vivante
+@@ -747,6 +761,13 @@ NNStreamer's datareposrc/sink plugins for reading and writing files in MLOps Dat
+ %define enable_armnn -Darmnn-support=disabled
+ %endif
+ 
++# Support NeuronSDK
++%if 0%{?neuronsdk_support}
++%define enable_neuronsdk -Dneuronsdk-support=enabled
++%else
++%define enable_neuronsdk -Dneuronsdk-support=disabled
++%endif
++
+ # Support python
+ %if 0%{?python3_support}
+ %define enable_python3 -Dpython3-support=enabled
+@@ -851,7 +872,7 @@ meson --buildtype=plain --prefix=%{_prefix} --sysconfdir=%{_sysconfdir} --libdir
+ 	--bindir=%{nnstbindir} --includedir=include -Dsubplugindir=%{_prefix}/lib/nnstreamer \
+ 	%{enable_tizen} %{element_restriction} %{fw_priority} -Denable-env-var=false -Denable-symbolic-link=false \
+ 	%{enable_tf_lite} %{enable_tf2_lite} %{enable_tf} %{enable_pytorch} %{enable_caffe2} %{enable_python3} \
+-	%{enable_nnfw_runtime} %{enable_mvncsdk2} %{enable_openvino} %{enable_armnn} %{enable_edgetpu}  %{enable_vivante} \
++	%{enable_nnfw_runtime} %{enable_mvncsdk2} %{enable_openvino} %{enable_armnn} %{enable_neuronsdk} %{enable_edgetpu}  %{enable_vivante} \
+ 	%{enable_flatbuf} %{enable_trix_engine} \
+ 	%{enable_tizen_sensor} %{enable_mqtt} %{enable_lua} %{enable_tvm} %{enable_test} %{enable_test_coverage} %{install_test} \
+         %{fp16_support} \
+@@ -1169,6 +1190,13 @@ cp -r result %{buildroot}%{_datadir}/nnstreamer/unittest/
+ %{_prefix}/lib/nnstreamer/filters/libnnstreamer_filter_armnn.so
+ %endif
+ 
++%if 0%{?neuronsdk_support}
++%files neuronsdk
++%manifest nnstreamer.manifest
++%defattr(-,root,root,-)
++%{_prefix}/lib/nnstreamer/filters/libnnstreamer_filter_neuronsdk.so
++%endif
++
+ %if 0%{mvncsdk2_support}
+ %files -n nnstreamer-ncsdk2
+ %defattr(-,root,root,-)
+-- 
+2.18.0
+
