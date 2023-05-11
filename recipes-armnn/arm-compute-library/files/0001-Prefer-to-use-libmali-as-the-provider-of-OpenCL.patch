@@ -1,0 +1,26 @@
+From 3885579e4289821c68fc0c1bd66630f75100d6e9 Mon Sep 17 00:00:00 2001
+From: "kidd-kw.chen" <kidd-kw.chen@mediatek.com>
+Date: Tue, 9 May 2023 17:16:31 +0800
+Subject: [PATCH] Prefer to use libmali as the provider of OpenCL
+
+Signed-off-by: kidd-kw.chen <kidd-kw.chen@mediatek.com>
+---
+ src/core/CL/OpenCL.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/core/CL/OpenCL.cpp b/src/core/CL/OpenCL.cpp
+index b391950e1b..cc32f5ef20 100644
+--- a/src/core/CL/OpenCL.cpp
++++ b/src/core/CL/OpenCL.cpp
+@@ -50,7 +50,7 @@ CLSymbols &CLSymbols::get()
+ 
+ bool CLSymbols::load_default()
+ {
+-    static const std::vector<std::string> libraries{ "libOpenCL.so", "libGLES_mali.so", "libmali.so" };
++    static const std::vector<std::string> libraries{ "libmali.so", "libOpenCL.so", "libGLES_mali.so" };
+ 
+     if(_loaded.first)
+     {
+-- 
+2.18.0
+

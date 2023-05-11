@@ -1,6 +1,6 @@
-From a68cddc5a1fb7df025377da7b33525189daa71fb Mon Sep 17 00:00:00 2001
-From: Julien STEPHAN <jstephan@baylibre.com>
-Date: Fri, 6 Nov 2020 15:18:32 +0000
+From 97743ecde3195d070fba86a5105a6417a248fce8 Mon Sep 17 00:00:00 2001
+From: "kidd-kw.chen" <kidd-kw.chen@mediatek.com>
+Date: Wed, 3 May 2023 13:28:45 +0800
 Subject: [PATCH] enable yocto build
 
 Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
@@ -9,17 +9,20 @@ Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
  1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/SConstruct b/SConstruct
-index 274326f67..930c129f2 100644
+index ca53246834..f40ce401f3 100644
 --- a/SConstruct
 +++ b/SConstruct
-@@ -250,9 +250,7 @@ if 'x86' not in env['arch']:
+@@ -363,9 +363,7 @@ if 'x86' not in env['arch']:
          elif env['os'] == 'tizen':
-             prefix = "armv7l-tizen-linux-gnueabi-"
+             auto_toolchain_prefix = "armv7l-tizen-linux-gnueabi-"
      elif env['estate'] == '64' and 'v8' in env['arch']:
 -        if env['os'] == 'linux':
--            prefix = "aarch64-linux-gnu-"
+-            auto_toolchain_prefix = "aarch64-linux-gnu-"
 -        elif env['os'] == 'bare_metal':
 +        if env['os'] == 'bare_metal':
-             prefix = "aarch64-elf-"
+             auto_toolchain_prefix = "aarch64-elf-"
          elif env['os'] == 'android':
-             prefix = "aarch64-linux-android-"
+             auto_toolchain_prefix = "aarch64-linux-android-"
+-- 
+2.18.0
+
