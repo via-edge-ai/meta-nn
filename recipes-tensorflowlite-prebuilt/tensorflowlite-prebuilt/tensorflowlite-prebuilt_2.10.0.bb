@@ -16,9 +16,11 @@ RDEPENDS:${PN} += " \
     python3-pillow \
 "
 
-SRCREV = "27cc82f3b9c758283be0512edeb61bf09a7c4166"
+SRCREV = "b1cb49a804a9ee94be8819edd2f24846ee8d57d9"
+BRANCH = "v2_10_0"
+TFLITE_ENABLE_XNNPACK = "0"
 
-SRC_URI += "${AIOT_RITY_URI}/tensorflowlite-prebuilt.git;protocol=ssh;branch=main \
+SRC_URI += "${AIOT_RITY_URI}/tensorflowlite-prebuilt.git;protocol=ssh;branch=${BRANCH} \
            "
 
 S = "${WORKDIR}/git"
@@ -27,11 +29,15 @@ do_configure[noexec] = "1"
 do_buildclean[noexec] = "1"
 
 do_install() {
-	oe_runmake install PWD=${S} LIBDIR=${D}${libdir} INCLUDEDIR=${D}${includedir} DATADIR=${D}${datadir} SBINDIR=${D}${sbindir}
+	oe_runmake install PWD=${S} LIBDIR=${D}${libdir} INCLUDEDIR=${D}${includedir} DATADIR=${D}${datadir} SBINDIR=${D}${sbindir} TFLITE_XNNPACK=${TFLITE_ENABLE_XNNPACK}
 	chown -R root:root ${D}${libdir}/
 }
 
-FILES:${PN} += " ${datadir} ${libdir} "
+FILES:${PN} += " \
+	${datadir} \
+	${libdir} \
+	${libdir}/pkgconfig/*.pc  \
+"
 
 FILES_SOLIBSDEV = ""
 
