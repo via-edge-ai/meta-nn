@@ -7,9 +7,14 @@ REQUIRED_DISTRO_FEATURES = "nda-mtk"
 
 SRCREV:mt8195 = "2502c4bf3eabec12ef1d4a8098f419b2f1a2f6e0"
 SRCREV:mt8188 = "9c08e0beaf59d216a2c1d8314fee12202a189641"
+SRCREV:mt8370 = "9c08e0beaf59d216a2c1d8314fee12202a189641"
 FIRMWARE_DIR:mt8195 = "mt8395"
 FIRMWARE_DIR:mt8188 = "mt8390"
+FIRMWARE_DIR:mt8370 = "mt8370"
 BRANCH = "${SOC_FAMILY}"
+# The firmware for mt8188 also supports mt8370
+BRANCH:mt8370 = "mt8188"
+
 SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-apusys-firmware.git;protocol=ssh;branch=${BRANCH} \
            "
 
