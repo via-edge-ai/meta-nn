@@ -8,6 +8,7 @@ SRC_URI:append = " \
 	file://0003-nnstreamer-Add-tensor-filter-neuronsdk.patch \
 	file://0004-nnstreamer-Fix-unittest-fail.patch \
 	file://0005-nnstreamer-example-Add-unit-test-fo-tensor-filter-ne.patch \
+	file://0006-nnstreamer-Fix-detect-objects-array-is-out-of-bound-.patch \
 	file://sample_1x4x4x4_two_input_one_output.tflite \
 	file://sample_1x4x4x4_two_input_two_output.tflite \
 "
