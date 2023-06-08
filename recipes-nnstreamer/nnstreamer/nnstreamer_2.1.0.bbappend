@@ -48,13 +48,16 @@ do_install:append() {
 
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example.py ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_pose_estimation_uvc.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection_yolov5_uvc.py ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection_uvc.py ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_image_classification_uvc.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/yolov5s-int8.tflite ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/ssd_mobilenet_v2_coco.tflite ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/posenet_mobilenet_v1_100_257x257_multi_kpt_stripped.tflite ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/mobilenet_v1_1.0_224_quant.tflite ${D}${bindir}/nnstreamer-demo
 
 	install -m 644 ${WORKDIR}/nnstreamer-demo/box_priors.txt ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/coco.txt ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/coco_labels_list.txt ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/labels.txt ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/point_labels.txt ${D}${bindir}/nnstreamer-demo
