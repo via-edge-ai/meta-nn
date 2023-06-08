@@ -11,6 +11,7 @@ SRC_URI:append = " \
 	file://0006-nnstreamer-Fix-detect-objects-array-is-out-of-bound-.patch \
 	file://sample_1x4x4x4_two_input_one_output.tflite \
 	file://sample_1x4x4x4_two_input_two_output.tflite \
+	file://nnstreamer-demo \
 "
 
 # Flags to check if neuron is available on current platform
@@ -42,6 +43,14 @@ do_install:append() {
 
 	install -m 644 ${WORKDIR}/sample_1x4x4x4_two_input_one_output.tflite ${D}${bindir}/unittest-nnstreamer/tests/test_models/models
 	install -m 644 ${WORKDIR}/sample_1x4x4x4_two_input_two_output.tflite ${D}${bindir}/unittest-nnstreamer/tests/test_models/models
+
+	install -d ${D}${bindir}/nnstreamer-demo
+
+	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_pose_estimation_uvc.py ${D}${bindir}/nnstreamer-demo
+
+	install -m 644 ${WORKDIR}/nnstreamer-demo/posenet_mobilenet_v1_100_257x257_multi_kpt_stripped.tflite ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/point_labels.txt ${D}${bindir}/nnstreamer-demo
 }
 
 # The original nnstreamer recipe makes separate packages for tensorflow and unit test,
