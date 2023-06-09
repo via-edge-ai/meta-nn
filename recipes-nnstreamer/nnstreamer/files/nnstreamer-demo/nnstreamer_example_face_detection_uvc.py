@@ -96,6 +96,8 @@ class Demo:
     elif engine == 'armnn':
       library = find_armnn_delegate_library()
       cmd += f'tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
+    elif engine == 'nnapi':
+      logging.error('Not support NNAPI')
 
     cmd += f'tensor_sink name=res_face '
 

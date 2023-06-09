@@ -75,6 +75,8 @@ class Demo:
     elif engine == 'armnn':
       library = find_armnn_delegate_library()
       cmd += f'queue ! tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
+    elif engine == 'nnapi':
+      logging.error('Not support NNAPI')
 
     cmd += f'tensor_decoder mode=bounding_boxes option1=mobilenet-ssd option2={self.label_path} option3={self.box_priors} option4={self.VIDEO_WIDTH}:{self.VIDEO_HEIGHT} option5={self.MODEL_INPUT_WIDTH}:{self.MODEL_INPUT_HEIGHT} ! '
     cmd += f'queue leaky=2 max-size-buffers=2 ! mix. '

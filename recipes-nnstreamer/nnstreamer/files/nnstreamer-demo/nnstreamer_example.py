@@ -8,13 +8,15 @@ import logging
 import subprocess
 import argparse
 
-available_engine=['neuronsdk', 'tflite', 'armnn']
+available_engine=['TBD', 'tflite', 'armnn']
 available_platform=['NA', 'G1200', 'G700', 'G350']
 fullscreen_flags = ['0', '1']
 
 def argument_parser_init():
   if find_nnapi_delegate_library() != 'null':
     available_engine[0] = 'nnapi'
+  if find_neuron_library() != 'null':
+    available_engine[0] = 'neuronsdk'
 
   parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
   parser.add_argument(
@@ -119,34 +121,60 @@ def find_armnn_delegate_library():
   cmd = 'ls -l /usr/lib/libarmnnDelegate.so.*'
   res = subprocess.run(cmd, shell=True, check=False, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
   result = res.stdout
-  # Define the regular expression pattern
+
+  pattern = r"ls\: cannot access "
+  miss = re.search(pattern, result)
+  if miss:
+      logging.warn("can't find libneuronusdk_runtime.mtk.so")
+      return 'null'
+
   pattern = r"/usr/lib/libarmnnDelegate\.so\.\d+\.0"
-
-  # Search for the pattern in the input_string
   find = re.search(pattern, result)
-
   if find:
       logging.info(find.group())
       return find.group()
   else:
-      logging.error("can't find libarmnnDelegate.so")
+      logging.warn("can't find libarmnnDelegate.so")
       return 'null'
 
 def find_nnapi_delegate_library():
   cmd = 'ls -l /usr/lib/nnapi_external_delegate.so'
   res = subprocess.run(cmd, shell=True, check=False, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
   result = res.stdout
-  # Define the regular expression pattern
+
+  pattern = r"ls\: cannot access "
+  miss = re.search(pattern, result)
+  if miss:
+      logging.warn("can't find libneuronusdk_runtime.mtk.so")
+      return 'null'
+
   pattern = r"nnapi_external_delegate.so"
-
-  # Search for the pattern in the input_string
   find = re.search(pattern, result)
-
   if find:
       logging.info(find.group())
       return find.group()
   else:
-      logging.error("can't find nnapi_external_delegate.so")
+      logging.warn("can't find nnapi_external_delegate.so")
+      return 'null'
+
+def find_neuron_library():
+  cmd = 'ls -l /usr/lib/libneuronusdk_runtime.mtk.so'
+  res = subprocess.run(cmd, shell=True, check=False, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+  result = res.stdout
+
+  pattern = r"ls\: cannot access "
+  miss = re.search(pattern, result)
+  if miss:
+      logging.warn("can't find libneuronusdk_runtime.mtk.so")
+      return 'null'
+
+  pattern = r"libneuronusdk_runtime.mtk.so"
+  find = re.search(pattern, result)
+  if find:
+      logging.info(find.group())
+      return find.group()
+  else:
+      logging.warn("can't find libneuronusdk_runtime.mtk.so")
       return 'null'
 
 def find_cpu_cores():

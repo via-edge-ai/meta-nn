@@ -82,7 +82,9 @@ class Demo:
     elif engine == 'armnn':
       library = find_armnn_delegate_library()
       cmd += f'tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
-    
+    elif engine == 'nnapi':
+      logging.error('Not support NNAPI')
+
     cmd += f'other/tensors,num_tensors=1,types=uint8,dimensions=85:6300:1:1,format=static ! '
     cmd += f'tensor_transform mode=arithmetic option=typecast:float32,add:-4.0,mul:0.0051498096 ! '
     cmd += f'tensor_decoder mode=bounding_boxes option1=yolov5 option2={self.tflite_label} option3=0 option4={self.VIDEO_WIDTH}:{self.VIDEO_HEIGHT} option5={self.MODEL_INPUT_WIDTH}:{self.MODEL_INPUT_HEIGHT} ! '
@@ -90,7 +92,7 @@ class Demo:
 
     self.pipeline = Gst.parse_launch(cmd)
     logging.info("pipeline: %s" % cmd)
-    
+
   def run(self):
       logging.info("Run: Object detection.")
 
