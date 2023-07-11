@@ -20,6 +20,7 @@ SRCREV = "d8bf9b53752a4f573120cf51b31055de8b3c7d29"
 SOC_ARCH:mt8188 = "arm64-v8.2-a"
 SOC_ARCH:mt8195 = "arm64-v8.2-a"
 SOC_ARCH:mt8365 = "arm64-v8a"
+SOC_ARCH:mt8183 = "arm64-v8a"
 
 EXTRA_OESCONS:aarch64 = "arch=${SOC_ARCH} extra_cxx_flags="-fPIC" Werror=0 asserts=0 debug=0 benchmark_tests=1 validation_tests=1 embed_kernels=1 openmp=1 opencl=1 neon=1 opencl=1 set_soname=1"
 
