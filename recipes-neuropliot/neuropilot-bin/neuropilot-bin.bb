@@ -6,7 +6,7 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES = "nda-mtk"
 
 DEPENDS += " libcxx ncurses "
-RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow python3-numpy "
+RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow python3-numpy zlib "
 
 PROVIDES = " \
 	virtual/libneuron \
@@ -20,7 +20,7 @@ RPROVIDES:${PN} = " \
 
 BRANCH = "${DISTRO_CODENAME}"
 
-SRCREV = "a2257c4e5676c1abf45e719516b9bd7ef5e60862"
+SRCREV = "bfb1607e8acc9d9394c35dd99aaa8d579ce06dd8"
 SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-neuropilot-prebuilts.git;protocol=ssh;branch=${BRANCH} \
 "
 
