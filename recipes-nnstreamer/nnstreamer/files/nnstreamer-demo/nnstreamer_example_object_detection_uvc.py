@@ -63,7 +63,7 @@ class Demo:
     #cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! compositor name=mix sink_0::zorder=1 sink_1::zorder=2 ! waylandsink sync=false fullscreen={self.FULLSCREEN} '
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! compositor name=mix sink_0::zorder=1 sink_1::zorder=2 ! fpsdisplaysink sync=false video-sink="waylandsink sync=false fullscreen={self.FULLSCREEN}" '
 
-    cmd += f't_raw. ! queue leaky=2 max-size-buffers=2 ! v4l2convert ! videoscale ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB ! tensor_converter ! '
+    cmd += f't_raw. ! queue leaky=2 max-size-buffers=2 ! videoconvert ! videoscale ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB ! tensor_converter ! '
     cmd += f'tensor_transform mode=arithmetic option=typecast:float32,add:-127.5,div:127.5 ! '
 
     if engine == 'neuronsdk':
