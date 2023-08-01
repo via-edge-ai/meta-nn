@@ -145,16 +145,16 @@ def find_nnapi_delegate_library():
   pattern = r"ls\: cannot access "
   miss = re.search(pattern, result)
   if miss:
-      logging.warn("can't find libneuronusdk_runtime.mtk.so")
+      logging.debug("can't find nnapi_external_delegate.so")
       return 'null'
 
   pattern = r"nnapi_external_delegate.so"
   find = re.search(pattern, result)
   if find:
-      logging.info(find.group())
+      logging.debug(find.group())
       return find.group()
   else:
-      logging.warn("can't find nnapi_external_delegate.so")
+      logging.debug("can't find nnapi_external_delegate.so")
       return 'null'
 
 def find_neuron_library():
@@ -165,16 +165,16 @@ def find_neuron_library():
   pattern = r"ls\: cannot access "
   miss = re.search(pattern, result)
   if miss:
-      logging.warn("can't find libneuronusdk_runtime.mtk.so")
+      logging.debug("can't find libneuronusdk_runtime.mtk.so")
       return 'null'
 
   pattern = r"libneuronusdk_runtime.mtk.so"
   find = re.search(pattern, result)
   if find:
-      logging.info(find.group())
+      logging.debug(find.group())
       return find.group()
   else:
-      logging.warn("can't find libneuronusdk_runtime.mtk.so")
+      logging.debug("can't find libneuronusdk_runtime.mtk.so")
       return 'null'
 
 def find_cpu_cores():
