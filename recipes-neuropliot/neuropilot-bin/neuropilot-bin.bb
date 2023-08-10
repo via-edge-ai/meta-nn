@@ -20,7 +20,7 @@ RPROVIDES:${PN} = " \
 
 BRANCH = "${DISTRO_CODENAME}"
 
-SRCREV = "b36ee8b5a69d7f09b1758e6de980f09bd46cb086"
+SRCREV = "0d6a725fb882d596f00ce5b70960a7e28b6dbd6b"
 SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-neuropilot-prebuilts.git;protocol=ssh;branch=${BRANCH} \
 "
 
