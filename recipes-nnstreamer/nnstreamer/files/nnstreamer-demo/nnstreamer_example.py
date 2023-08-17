@@ -10,9 +10,9 @@ import argparse
 
 available_engine=['TBD', 'tflite', 'armnn']
 available_platform=['NA', 'G1200', 'G700', 'G350']
-fullscreen_flags = ['0', '1']
+toggle_flags = ['0', '1']
 
-def argument_parser_init():
+def argument_parser_init(enable_cam_rot):
   if find_nnapi_delegate_library() != 'null':
     available_engine[0] = 'nnapi'
   if find_neuron_library() != 'null':
@@ -59,11 +59,27 @@ def argument_parser_init():
 
   parser.add_argument(
         '--fullscreen',
-        default=fullscreen_flags[0],
-        choices=fullscreen_flags,
+        default=toggle_flags[0],
+        choices=toggle_flags,
         help='Fullscreen preview.\n'
              '1: Enable\n'
              '0: Disable\n')
+
+  parser.add_argument(
+        '--throughput',
+        default=toggle_flags[0],
+        choices=toggle_flags,
+        help='Print throughput information.\n'
+             '1: Enable\n'
+             '0: Disable\n')
+
+  if enable_cam_rot == True:
+    parser.add_argument(
+        '--rot',
+        default=0,
+        type=int,
+        help='Rotate the camera image by degrees, ex: 90\n')
+
 
   args = parser.parse_args()
   return args

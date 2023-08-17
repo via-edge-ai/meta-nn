@@ -33,24 +33,24 @@ class Demo:
     self.pipeline = None
     self.running = False
 
-    self.VIDEO_WIDTH = 640
-    self.VIDEO_HEIGHT = 480
+    self.VIDEO_WIDTH = 720
+    self.VIDEO_HEIGHT = 1280
     self.MODEL_INPUT_HEIGHT = 224
     self.MODEL_INPUT_WIDTH = 224
     self.FULLSCREEN = 0
-
-    # $ v4l2-ctl --list-devices
-    # C922 Pro Stream Webcam (usb-11290000.xhci-1.2):
-    #  /dev/video130
-    #  /dev/video131
-    #  /dev/media2
     self.CAM_ID = 0
+    self.CAM_ROT = 0
 
     self.tflite_model = ''
     self.dla = ''
     self.tflite_labels = []
     self.current_label_index = -1
     self.new_label_index = -1
+
+    self.filter = None
+    self.textoverlay = None
+    self.invoke_ms = 0
+    self.avgfps = 0
 
     if not self.tflite_init():
         raise Exception
@@ -60,21 +60,28 @@ class Demo:
 
   def build_pipeline(self, engine):
     cmd = ''
-    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2316,height=1746,format=UYVY ! tee name=t_raw '
-    cmd += f't_raw. ! queue ! v4l2convert output-io-mode=dmabuf-import extra-controls="cid,rotate=90" ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=RGB16,pixel-aspect-ratio=1/1 ! '
-    cmd += f'queue ! textoverlay name=tensor_res font-desc=Sans,24 ! waylandsink sync=false qos=false fullscreen={self.FULLSCREEN} '
-    cmd += f't_raw. ! queue ! v4l2convert output-io-mode=dmabuf-import capture-io-mode=mmap extra-controls="cid,rotate=90" ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB,pixel-aspect-ratio=1/1 ! '
-    cmd += f'queue ! tensor_converter ! '
+    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2316,height=1746,format=UYVY,framerate=30/1 ! tee name=t_raw '
+    cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! '
+    cmd += f'v4l2convert output-io-mode=dmabuf-import extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=RGB16,pixel-aspect-ratio=1/1 ! '
+    cmd += f'textoverlay name=label font-desc=Sans,18 valignment=top ! '
+    cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="glimagesink sync=false qos=false" '
+
+    cmd += f't_raw. ! queue leaky=2 max-size-buffers=2 ! '
+    cmd += f'v4l2convert output-io-mode=dmabuf-import capture-io-mode=mmap extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB,pixel-aspect-ratio=1/1 ! '
+    cmd += f'tensor_converter ! '
 
     if engine == 'neuronsdk':
       tensor = dla_converter(self.tflite_model, self.dla)
-      cmd += f'tensor_filter framework=neuronsdk model={self.dla} {tensor} ! '
+      cmd += f'tensor_filter framework=neuronsdk throughput={self.THROUGHPUT} name=nn model={self.dla} {tensor} ! '
     elif engine == 'tflite':
       cpu_cores = find_cpu_cores()
-      cmd += f'tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=NumThreads:{cpu_cores} ! '
+      cmd += f'tensor_filter framework=tensorflow-lite throughput={self.THROUGHPUT} name=nn model={self.tflite_model} custom=NumThreads:{cpu_cores} ! '
     elif engine == 'armnn':
       library = find_armnn_delegate_library()
-      cmd += f'tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
+      cmd += f'tensor_filter framework=tensorflow-lite throughput={self.THROUGHPUT} name=nn model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
+    elif engine == 'nnapi':
+      library = find_nnapi_delegate_library()
+      cmd += f'tensor_filter framework=tensorflow-lite throughput={self.THROUGHPUT} name=nn model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library} ! '
 
     cmd += f'tensor_sink name=tensor_sink'
 
@@ -109,8 +116,10 @@ class Demo:
             # update textoverlay
             self.current_label_index = self.new_label_index
             label = self.tflite_get_label(self.current_label_index)
-            textoverlay = self.pipeline.get_by_name('tensor_res')
-            textoverlay.set_property('text', label)
+            if self.THROUGHPUT == '1':
+                self.textoverlay.set_property('text', f'{label}, Camera FPS: {self.avgfps:.2f}, Invoke Time(ms):{round(self.invoke_ms, 2)}')
+            else:
+                self.textoverlay.set_property('text', f'{label}')
     return True
 
   def tflite_get_label(self, index):
@@ -132,6 +141,21 @@ class Demo:
     else:
         logging.error('unexpected data size [%d]', data_size)
 
+
+  def on_buffer(self, pad, info):
+      throughput = self.filter.get_property('throughput')
+      if (throughput > 0):
+        fps = (throughput/1000.0);
+        self.invoke_ms = (1.0/fps) * 1000.0;
+        logging.debug('[on_buffer] fps[%d]', fps)
+        logging.debug('[on_buffer] time[%f] ms', self.invoke_ms)
+
+      return Gst.PadProbeReturn.OK
+
+  def on_fps_measurement(self, element, fps, droprate, avgfps):
+      logging.debug("[on_fps_measurement]")
+      self.avgfps = avgfps
+
   def run(self):
       logging.info("Run: Image classification.")
 
@@ -149,6 +173,18 @@ class Demo:
 
       # timer to update result
       GObject.timeout_add(500, self.on_timer_update_result)
+
+      # textoverlay to display throughput information of tensor_filter
+      self.textoverlay = self.pipeline.get_by_name('label')
+
+      if self.THROUGHPUT == '1':
+          self.filter = self.pipeline.get_by_name("nn")
+          # tensor_filter src signal : buffer ready callback
+          srcpad = self.filter.get_static_pad("src")
+          srcpad.add_probe(Gst.PadProbeType.BUFFER, self.on_buffer)
+
+          sink = self.pipeline.get_by_name('sink')
+          sink.connect('fps-measurements', self.on_fps_measurement)
 
       # start pipeline
       self.pipeline.set_state(Gst.State.PLAYING)
@@ -208,16 +244,17 @@ class Demo:
           format_str = Gst.Format.get_name(data_format)
           logging.info('[qos] format[%s] processed[%d] dropped[%d]', format_str, processed, dropped)
 
-
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
-  args = argument_parser_init()
+  args = argument_parser_init(True)
 
   example = Demo(sys.argv[1:])
   example.CAM_ID = args.cam
   example.VIDEO_WIDTH = args.width
   example.VIDEO_HEIGHT = args.height
   example.FULLSCREEN = args.fullscreen
+  example.THROUGHPUT = args.throughput
+  example.CAM_ROT = args.rot
 
   performance_hint(args.performance)
 

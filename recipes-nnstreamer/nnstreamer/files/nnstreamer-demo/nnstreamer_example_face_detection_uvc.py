@@ -57,11 +57,6 @@ class Demo:
     self.W_SCALE = 5.0
 
 
-    # $ v4l2-ctl --list-devices
-    # C922 Pro Stream Webcam (usb-11290000.xhci-1.2):
-    #  /dev/video130
-    #  /dev/video131
-    #  /dev/media2
     self.CAM_ID = 0
 
     self.tflite_model = ''
@@ -71,7 +66,11 @@ class Demo:
     self.detected_objects = []
     self.pattern = None
     self.mask_pattern_path = ''
-    
+
+    self.filter = None
+    self.invoke_ms = 0
+    self.avgfps = 0
+
     if not self.tflite_init():
         raise Exception
 
@@ -80,22 +79,26 @@ class Demo:
 
   def build_pipeline(self, engine):
     cmd = ''
-    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} io-mode=mmap ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=YUY2 ! tee name=t_raw '
-    #cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! videoconvert ! cairooverlay name=tensor_res ! waylandsink sync=false fullscreen={self.FULLSCREEN} '
-    cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! videoconvert ! cairooverlay name=tensor_res ! fpsdisplaysink sync=false video-sink="waylandsink sync=false fullscreen={self.FULLSCREEN}" '
+    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} io-mode=mmap ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=YUY2,framerate=30/1 ! tee name=t_raw '
+    cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! '
+    cmd += f'videoconvert ! '
+    cmd += f'cairooverlay name=tensor_res ! '
+    cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="waylandsink sync=false qos=false fullscreen={self.FULLSCREEN}"'
 
-    cmd += f't_raw. ! queue leaky=2 max-size-buffers=2 ! videoconvert ! videoscale ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB ! tensor_converter ! '
+    cmd += f't_raw. ! queue leaky=2 max-size-buffers=2 ! '
+    cmd += f'videoconvert ! videoscale ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB ! '
+    cmd += f'tensor_converter ! '
     cmd += f'tensor_transform mode=arithmetic option=typecast:float32,add:-127.5,div:127.5 ! '
 
     if engine == 'neuronsdk':
       tensor = dla_converter(self.tflite_model, self.dla)
-      cmd += f'tensor_filter framework=neuronsdk model={self.dla} {tensor} ! '
+      cmd += f'tensor_filter framework=neuronsdk throughput={self.THROUGHPUT} name=nn model={self.dla} {tensor} ! '
     elif engine == 'tflite':
       cpu_cores = find_cpu_cores()
-      cmd += f'tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=NumThreads:{cpu_cores} ! '
+      cmd += f'tensor_filter framework=tensorflow-lite throughput={self.THROUGHPUT} name=nn model={self.tflite_model} custom=NumThreads:{cpu_cores} ! '
     elif engine == 'armnn':
       library = find_armnn_delegate_library()
-      cmd += f'tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
+      cmd += f'tensor_filter framework=tensorflow-lite throughput={self.THROUGHPUT} name=nn model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
     elif engine == 'nnapi':
       logging.error('Not support NNAPI')
 
@@ -248,11 +251,9 @@ class Demo:
       # mutex_lock alternative required
       detected = self.detected_objects
       # mutex_unlock alternative needed
-      
+
       drawed = 0
       calculated = 0
-      context.select_font_face('Sans', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-      context.set_font_size(20.0)
 
       face_sizes = [0 for _ in range(len(detected))]
 
@@ -284,14 +285,38 @@ class Demo:
           drawed += 1
           if drawed >= self.MAX_OBJECT_DETECTION:
               break
-              
+
+      if self.THROUGHPUT == '1':
+              text = f'Camera FPS: {self.avgfps:.2f}, Invoke Time(ms):{round(self.invoke_ms, 2)}'
+              context.select_font_face('Sans', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+              context.set_font_size(20.0)
+              context.set_source_rgb(1, 1, 1)
+              (x, y, w, h, dx, dy) = context.text_extents(text)
+              context.move_to((self.VIDEO_WIDTH - w) / 2.0, (self.VIDEO_HEIGHT - h) / 10.0)
+              context.show_text(text)
+      return
+
   def set_mask_pattern(self):
       """
       Prepare mask pattern for cairooverlay.
       """
       source = cairo.ImageSurface.create_from_png(self.mask_pattern_path)
       self.pattern = cairo.SurfacePattern(source)
-      self.pattern.set_extend(cairo.Extend.REPEAT)  
+      self.pattern.set_extend(cairo.Extend.REPEAT)
+
+  def on_buffer(self, pad, info):
+      throughput = self.filter.get_property('throughput')
+      if (throughput > 0):
+        fps = (throughput/1000.0);
+        self.invoke_ms = (1.0/fps) * 1000.0;
+        logging.debug('[on_buffer] fps[%d]', fps)
+        logging.debug('[on_buffer] time[%f] ms', self.invoke_ms)
+
+      return Gst.PadProbeReturn.OK
+
+  def on_fps_measurement(self, element, fps, droprate, avgfps):
+      logging.debug("[on_fps_measurement]")
+      self.avgfps = avgfps
 
   def run(self):
       logging.info("Run: Face detection.")
@@ -314,6 +339,15 @@ class Demo:
       tensor_res = self.pipeline.get_by_name('tensor_res')
       tensor_res.connect('draw', self.draw_overlay_cb)
       tensor_res.connect('caps-changed', self.prepare_overlay_cb)
+
+      if self.THROUGHPUT == '1':
+          self.filter = self.pipeline.get_by_name("nn")
+          # tensor_filter src signal : buffer ready callback
+          srcpad = self.filter.get_static_pad("src")
+          srcpad.add_probe(Gst.PadProbeType.BUFFER, self.on_buffer)
+
+          sink = self.pipeline.get_by_name('sink')
+          sink.connect('fps-measurements', self.on_fps_measurement)
 
       # start pipeline
       self.pipeline.set_state(Gst.State.PLAYING)
@@ -389,13 +423,14 @@ class Demo:
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
-  args = argument_parser_init()
-  
+  args = argument_parser_init(False)
+
   example = Demo(sys.argv[1:])
   example.CAM_ID = args.cam
   example.VIDEO_WIDTH = args.width
   example.VIDEO_HEIGHT = args.height
   example.FULLSCREEN = args.fullscreen
+  example.THROUGHPUT = args.throughput
 
   performance_hint(args.performance)
 

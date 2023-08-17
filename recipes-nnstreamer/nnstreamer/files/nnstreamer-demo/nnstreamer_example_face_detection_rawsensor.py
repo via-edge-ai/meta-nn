@@ -80,11 +80,11 @@ class Demo:
 
   def build_pipeline(self, engine):
     cmd = ''
-    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2316,height=1746,format=UYVY,framerate=30/1 ! tee name=t_raw '
+    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2048,height=1536,format=YUY2,framerate=30/1 ! tee name=t_raw '
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! '
     cmd += f'v4l2convert output-io-mode=dmabuf-import extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=RGB16,pixel-aspect-ratio=1/1 ! '
     cmd += f'cairooverlay name=tensor_res ! '
-    cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="glimagesink sync=false qos=false" '
+    cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="glimagesink sync=false qos=false " '
 
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=2 ! '
     cmd += f'v4l2convert output-io-mode=dmabuf-import capture-io-mode=mmap extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB,pixel-aspect-ratio=1/1 ! '

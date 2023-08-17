@@ -13,10 +13,10 @@ import subprocess
 #  // Download model
 #  mkdir -p nnstreamer-demo
 #  cd nnstreamer-demo
-#  download_url="https://github.com/nnsuite/testcases/raw/master/DeepLearningModels/tensorflow-lite/ssd_mobilenet_v2_coco"
-#  wget ${download_url}/ssd_mobilenet_v2_coco.tflite
-#  wget ${download_url}/coco_labels_list.txt
-#  wget ${download_url}/box_priors.txt
+#  wget https://storage.googleapis.com/download.tensorflow.org/models/tflite/mobilenet_v1_1.0_224_quant_and_labels.zip
+#  unzip mobilenet_v1_1.0_224_quant_and_labels.zip
+#  rm mobilenet_v1_1.0_224_quant_and_labels.zip
+#  mv labels_mobilenet_quant_v1_224.txt labels.txt
 #
 #  // Push to device
 #  adb push nnstreamer-demo /usr/bin/
@@ -33,27 +33,24 @@ class Demo:
     self.pipeline = None
     self.running = False
 
-    self.VIDEO_WIDTH = 640
-    self.VIDEO_HEIGHT = 480
-    self.MODEL_INPUT_HEIGHT = 300
-    self.MODEL_INPUT_WIDTH = 300
+    self.VIDEO_WIDTH = 720
+    self.VIDEO_HEIGHT = 1280
+    self.MODEL_INPUT_HEIGHT = 224
+    self.MODEL_INPUT_WIDTH = 224
     self.FULLSCREEN = 0
-
-    # $ v4l2-ctl --list-devices
-    # C922 Pro Stream Webcam (usb-11290000.xhci-1.2):
-    #  /dev/video130
-    #  /dev/video131
-    #  /dev/media2
+    self.CAM_ROT = 0
     self.CAM_ID = 0
 
     self.tflite_model = ''
     self.dla = ''
-    self.label_path = ''
-    self.box_priors = ''
+    self.tflite_labels = []
+    self.current_label_index = -1
+    self.new_label_index = -1
 
     self.filter = None
     self.textoverlay = None
     self.invoke_ms = 0
+    self.avgfps = 0
 
     if not self.tflite_init():
         raise Exception
@@ -63,20 +60,15 @@ class Demo:
 
   def build_pipeline(self, engine):
     cmd = ''
-    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} io-mode=mmap ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=YUY2,framerate=30/1 ! tee name=t_raw '
+    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2048,height=1536,format=YUY2,framerate=30/1 ! tee name=t_raw '
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! '
-
-    cmd += f'compositor name=mix sink_0::zorder=1 sink_1::zorder=2 latency=999999999 ! '
-
-    if self.THROUGHPUT == '1':
-      cmd += f'textoverlay name=info text="" font-desc=Sans,18 valignment=top ! '
-
-    cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="waylandsink sync=false qos=false fullscreen={self.FULLSCREEN}"'
+    cmd += f'v4l2convert output-io-mode=dmabuf-import extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=RGB16,pixel-aspect-ratio=1/1 ! '
+    cmd += f'textoverlay name=label font-desc=Sans,18 valignment=top ! '
+    cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="glimagesink sync=false qos=false" '
 
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=2 ! '
-    cmd += f'videoconvert ! videoscale ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB ! '
+    cmd += f'v4l2convert output-io-mode=dmabuf-import capture-io-mode=mmap extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB,pixel-aspect-ratio=1/1 ! '
     cmd += f'tensor_converter ! '
-    cmd += f'tensor_transform mode=arithmetic option=typecast:float32,add:-127.5,div:127.5 ! '
 
     if engine == 'neuronsdk':
       tensor = dla_converter(self.tflite_model, self.dla)
@@ -91,11 +83,64 @@ class Demo:
       library = find_nnapi_delegate_library()
       cmd += f'tensor_filter framework=tensorflow-lite throughput={self.THROUGHPUT} name=nn model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library} ! '
 
-    cmd += f'tensor_decoder mode=bounding_boxes option1=mobilenet-ssd option2={self.label_path} option3={self.box_priors} option4={self.VIDEO_WIDTH}:{self.VIDEO_HEIGHT} option5={self.MODEL_INPUT_WIDTH}:{self.MODEL_INPUT_HEIGHT} ! '
-    cmd += f'mix. '
+    cmd += f'tensor_sink name=tensor_sink'
 
     self.pipeline = Gst.parse_launch(cmd)
     logging.info("pipeline: %s" % cmd)
+
+
+  def build_pipeline_dev(self):
+      cpu_cores = find_cpu_cores()
+      tensor = dla_converter(self.tflite_model, self.dla)
+      library = find_armnn_delegate_library()
+
+      cmd = ''
+
+      self.pipeline = Gst.parse_launch(cmd)
+      logging.info("pipeline: %s" % cmd)
+
+
+  def on_new_data(self, sink, buffer):
+    if self.running:
+        for idx in range(buffer.n_memory()):
+            mem = buffer.peek_memory(idx)
+            result, mapinfo = mem.map(Gst.MapFlags.READ)
+            if result:
+                # update label index with max score
+                self.update_top_label_index(mapinfo.data, mapinfo.size)
+                mem.unmap(mapinfo)
+
+  def on_timer_update_result(self):
+    if self.running:
+        if self.current_label_index != self.new_label_index:
+            # update textoverlay
+            self.current_label_index = self.new_label_index
+            label = self.tflite_get_label(self.current_label_index)
+            if self.THROUGHPUT == '1':
+                self.textoverlay.set_property('text', f'{label}, Camera FPS: {self.avgfps:.2f}, Invoke Time(ms):{round(self.invoke_ms, 2)}')
+            else:
+                self.textoverlay.set_property('text', f'{label}')
+    return True
+
+  def tflite_get_label(self, index):
+    try:
+        label = self.tflite_labels[index]
+    except IndexError:
+        label = ''
+    return label
+
+  def update_top_label_index(self, data, data_size):
+    # -1 if failed to get max score index
+    self.new_label_index = -1
+
+    if data_size == len(self.tflite_labels):
+        scores = [data[i] for i in range(data_size)]
+        max_score = max(scores)
+        if max_score > 0:
+            self.new_label_index = scores.index(max_score)
+    else:
+        logging.error('unexpected data size [%d]', data_size)
+
 
   def on_buffer(self, pad, info):
       throughput = self.filter.get_property('throughput')
@@ -109,11 +154,10 @@ class Demo:
 
   def on_fps_measurement(self, element, fps, droprate, avgfps):
       logging.debug("[on_fps_measurement]")
-      new_text = f'Camera FPS: {avgfps:.2f}, Invoke Time(ms):{round(self.invoke_ms, 2)}'
-      self.textoverlay.set_property('text', new_text)
+      self.avgfps = avgfps
 
   def run(self):
-      logging.info("Run: Object detection.")
+      logging.info("Run: Image classification.")
 
       # main loop
       self.loop = GObject.MainLoop()
@@ -123,14 +167,22 @@ class Demo:
       bus.add_signal_watch()
       bus.connect('message', self.on_bus_message)
 
+      # tensor sink signal : new data callback
+      tensor_sink = self.pipeline.get_by_name('tensor_sink')
+      tensor_sink.connect('new-data', self.on_new_data)
+
+      # timer to update result
+      GObject.timeout_add(500, self.on_timer_update_result)
+
+      # textoverlay to display throughput information of tensor_filter
+      self.textoverlay = self.pipeline.get_by_name('label')
+
       if self.THROUGHPUT == '1':
           self.filter = self.pipeline.get_by_name("nn")
           # tensor_filter src signal : buffer ready callback
           srcpad = self.filter.get_static_pad("src")
           srcpad.add_probe(Gst.PadProbeType.BUFFER, self.on_buffer)
 
-          # textoverlay to display throughput information of tensor_filter
-          self.textoverlay = self.pipeline.get_by_name('info')
           sink = self.pipeline.get_by_name('sink')
           sink.connect('fps-measurements', self.on_fps_measurement)
 
@@ -148,30 +200,30 @@ class Demo:
       bus.remove_signal_watch()
 
   def tflite_init(self):
-      tflite_model = 'ssd_mobilenet_v2_coco.tflite'
-      dla = 'ssd_mobilenet_v2_coco.dla'
-      tflite_label = 'coco_labels_list.txt'
-      tflite_box_priors = 'box_priors.txt'
-
+      tflite_model = 'mobilenet_v1_1.0_224_quant.tflite'
+      dla = 'mobilenet_v1_1.0_224_quant.dla'
+      tflite_label = 'labels.txt'
       current_folder = os.path.dirname(os.path.abspath(__file__))
       model_folder = os.path.join(current_folder, '')
 
+      # check model file exists
       self.tflite_model = os.path.join(model_folder, tflite_model)
       self.dla = os.path.join(model_folder, dla)
       if not os.path.exists(self.tflite_model):
           logging.error('cannot find tflite model [%s]', self.tflite_model)
           return False
 
-      self.label_path = os.path.join(model_folder, tflite_label)
-      if not os.path.exists(self.label_path):
-          logging.error('cannot find point label [%s]', self.label_path)
+      # load labels
+      label_path = os.path.join(model_folder, tflite_label)
+      try:
+          with open(label_path, 'r') as label_file:
+              for line in label_file.readlines():
+                  self.tflite_labels.append(line)
+      except FileNotFoundError:
+          logging.error('cannot find tflite label [%s]', label_path)
           return False
 
-      self.box_priors = os.path.join(model_folder, tflite_box_priors)
-      if not os.path.exists(self.box_priors):
-          logging.error('cannot find box priors file [%s]', self.box_priors)
-          return False
-
+      logging.info('finished to load labels, total [%d]', len(self.tflite_labels))
       return True
 
   def on_bus_message(self, bus, message):
@@ -194,7 +246,7 @@ class Demo:
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
-  args = argument_parser_init(False)
+  args = argument_parser_init(True)
 
   example = Demo(sys.argv[1:])
   example.CAM_ID = args.cam
@@ -202,6 +254,7 @@ if __name__ == '__main__':
   example.VIDEO_HEIGHT = args.height
   example.FULLSCREEN = args.fullscreen
   example.THROUGHPUT = args.throughput
+  example.CAM_ROT = args.rot
 
   performance_hint(args.performance)
 

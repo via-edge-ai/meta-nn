@@ -43,6 +43,9 @@ class Demo:
       self.image_path = ''
       self.export_image = ''
 
+      self.filter = None
+      self.invoke_ms = 0
+
       GObject.threads_init()
       Gst.init(argv)
 
@@ -51,22 +54,22 @@ class Demo:
           raise Exception
 
       cmd = ''
-      cmd += f'filesrc location={self.image_path} ! pngdec ! videoscale ! '
+      cmd += f'filesrc location={self.image_path} ! pngdec ! imagefreeze num-buffers=2 ! videoscale ! '
       cmd += f'videoconvert ! video/x-raw,width={self.IMG_WIDTH},height={self.IMG_HEIGHT},format=RGB ! tensor_converter ! '
       cmd += f'tensor_transform mode=arithmetic option=typecast:float32,add:0,div:255.0 ! '
 
       if engine == 'neuronsdk':
         self.export_image += '_neuronsdk.png'
         tensor = dla_converter(self.tflite_model, self.dla)
-        cmd += f'tensor_filter framework=neuronsdk model={self.dla} {tensor} ! '
+        cmd += f'tensor_filter framework=neuronsdk throughput=1 name=nn model={self.dla} {tensor} ! '
       elif engine == 'tflite':
         self.export_image += '_tflite.png'
         cpu_cores = find_cpu_cores()
-        cmd += f'queue ! tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=NumThreads:{cpu_cores} ! '
+        cmd += f'queue ! tensor_filter framework=tensorflow-lite throughput=1 name=nn model={self.tflite_model} custom=NumThreads:{cpu_cores} ! '
       elif engine == 'armnn':
         self.export_image + '_armnn.png'
         library = find_armnn_delegate_library()
-        cmd += f'queue ! tensor_filter framework=tensorflow-lite model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
+        cmd += f'queue ! tensor_filter framework=tensorflow-lite throughput=1 name=nn model={self.tflite_model} custom=Delegate:External,ExtDelegateLib:{library},ExtDelegateKeyVal:backends#GpuAcc ! '
       elif engine == 'nnapi':
         self.export_image += '_nnapi.png'
         logging.error('Not support NNAPI')
@@ -75,6 +78,18 @@ class Demo:
 
       self.pipeline = Gst.parse_launch(cmd)
       logging.info("pipeline: %s" % cmd)
+
+  def on_buffer(self, pad, info):
+      # Becasue 'throughput' is the 'average' throughput, so we have run pipeline twice then we can query 'throughput' value.
+      # That's why we set 'imagefreeze num-buffers=2' in pipeline.
+      throughput = self.filter.get_property('throughput')
+      if (throughput > 0):
+        fps = (throughput/1000.0);
+        self.invoke_ms = (1.0/fps) * 1000.0;
+        logging.debug('[on_buffer] fps[%d]', fps)
+        logging.info('[on_buffer] time[%f] ms', self.invoke_ms)
+
+      return Gst.PadProbeReturn.OK
 
   def run(self):
       logging.info("Run: Low light image enhancement.")
@@ -90,6 +105,12 @@ class Demo:
       # tensor sink signal : new data callback
       tensor_sink = self.pipeline.get_by_name('tensor_sink')
       tensor_sink.connect('new-data', self.on_new_data)
+
+      # textoverlay to display throughput information of tensor_filter
+      self.filter = self.pipeline.get_by_name("nn")
+      # tensor_filter src signal : buffer ready callback
+      srcpad = self.filter.get_static_pad("src")
+      srcpad.add_probe(Gst.PadProbeType.BUFFER, self.on_buffer)
 
       # start pipeline
       self.pipeline.set_state(Gst.State.PLAYING)
@@ -162,7 +183,6 @@ class Demo:
                   logging.info('export png file: %s', self.export_image)
                   img.show()
                   mem.unmap(mapinfo)
-          self.loop.quit()
 
 def argument_parser():
   available_engine=['TBD', 'tflite', 'armnn']
