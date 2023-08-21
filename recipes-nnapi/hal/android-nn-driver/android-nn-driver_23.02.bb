@@ -13,7 +13,7 @@ RPROVIDES:${PN} = "libvendor-nn-hal"
 
 TOOLCHAIN = "clang"
 
-SRCREV = "558a1d4ed904f5f7d04781bc3405ee77669563d0"
+SRCREV = "084cb4dcb9eca3eac3fc634f052ddb7d7fcc0bb4"
 BRANCH = "branches/android-nn-driver_${PV_MAJOR}_${PV_MINOR}"
 
 SRC_URI = "git://github.com/ARM-software/android-nn-driver.git;protocol=https;branch=${BRANCH} \
@@ -21,17 +21,18 @@ SRC_URI = "git://github.com/ARM-software/android-nn-driver.git;protocol=https;br
            file://0002-use-syncWait-instead-of-sync_wait.patch \
            file://0003-add-missing-cfloat-include.patch \
            file://0004-add-Makefile.patch \
-           file://0001-add-gpu-tuning-file-support.patch \
-           file://0001-android-nn-driver-link-libarmnnSerializer.patch \
-           file://0001-replace-steady_clock-by-high_resolution_clock.patch \
-           file://0001-add-missing-fcntl-include.patch \
-           file://0001-add-missing-float-include.patch \
-           file://0001-Fix-a-wrong-implicit-type-cast.patch \
+           file://0005-add-gpu-tuning-file-support.patch \
+           file://0006-android-nn-driver-link-libarmnnSerializer.patch \
+           file://0007-replace-steady_clock-by-high_resolution_clock.patch \
+           file://0008-Add-fcntl-include-depedency-for-1.2-1.3-armnndriveri.patch \
+           file://0009-Add-float-dependency-for-armnndriverimpl.patch \
+           file://0010-Fix-a-wrong-implicit-type-cast.patch \
            "
 
 S = "${WORKDIR}/git"
 
-DEPENDS = " armnn nnapi-headers nnapi-support tensorflow-lite opencl-headers opencl-clhpp "
+DEPENDS = " armnn nnapi-headers nnapi-support opencl-headers opencl-clhpp fmt "
+DEPENDS += " ${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tensorflowlite-prebuilt', 'tensorflow-lite', d)} "
 
 TUNE_CCARGS:remove = "-mcpu=cortex-a73.cortex-a53"
 

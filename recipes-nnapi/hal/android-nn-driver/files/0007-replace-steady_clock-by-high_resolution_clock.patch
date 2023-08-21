@@ -1,7 +1,7 @@
-From 5c087dbeabb772e9528fdda8fa7a72cf663348c9 Mon Sep 17 00:00:00 2001
+From 63d9c86a157ae72024c84865e7c5c3a4f4eade2c Mon Sep 17 00:00:00 2001
 From: Julien STEPHAN <jstephan@baylibre.com>
 Date: Tue, 9 Nov 2021 13:28:45 +0100
-Subject: [PATCH] replace steady_clock by high_resolution_clock
+Subject: [PATCH 07/10] replace steady_clock by high_resolution_clock
 
 Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
 ---
@@ -12,10 +12,10 @@ Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
  4 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/ArmnnPreparedModel_1_2.cpp b/ArmnnPreparedModel_1_2.cpp
-index 5a10d54..75773a1 100644
+index a401b30..2a0fb96 100644
 --- a/ArmnnPreparedModel_1_2.cpp
 +++ b/ArmnnPreparedModel_1_2.cpp
-@@ -27,11 +27,11 @@ namespace {
+@@ -30,11 +30,11 @@ namespace {
  
  static const V1_2::Timing g_NoTiming = {.timeOnDevice = UINT64_MAX, .timeInDriver = UINT64_MAX};
  using namespace armnn_driver;
@@ -29,7 +29,7 @@ index 5a10d54..75773a1 100644
  }
  
  unsigned long MicrosecondsDuration(TimePoint endPoint, TimePoint startPoint)
-@@ -770,7 +770,7 @@ void ArmnnPreparedModel_1_2<HalVersion>::ArmnnThreadPoolCallback_1_2<CallbackCon
+@@ -822,7 +822,7 @@ void ArmnnPreparedModel_1_2<HalVersion>::ArmnnThreadPoolCallback_1_2<CallbackCon
  
      if (m_CallbackContext.ctx.measureTimings == V1_2::MeasureTiming::YES)
      {
@@ -39,10 +39,10 @@ index 5a10d54..75773a1 100644
          timing.timeOnDevice = MicrosecondsDuration(timeTaken.second, timeTaken.first);
          timing.timeInDriver = MicrosecondsDuration(driverEnd, m_CallbackContext.ctx.driverStart);
 diff --git a/ArmnnPreparedModel_1_3.cpp b/ArmnnPreparedModel_1_3.cpp
-index 9522886..260c801 100644
+index 5d57f83..605e8bc 100644
 --- a/ArmnnPreparedModel_1_3.cpp
 +++ b/ArmnnPreparedModel_1_3.cpp
-@@ -32,11 +32,11 @@ namespace {
+@@ -34,11 +34,11 @@ namespace {
  
  static const V1_2::Timing g_NoTiming = {.timeOnDevice = UINT64_MAX, .timeInDriver = UINT64_MAX};
  using namespace armnn_driver;
@@ -56,7 +56,7 @@ index 9522886..260c801 100644
  }
  
  unsigned long MicrosecondsDuration(TimePoint endPoint, TimePoint startPoint)
-@@ -1079,7 +1079,7 @@ void ArmnnPreparedModel_1_3<HalVersion>::ArmnnThreadPoolCallback_1_3<CallbackCon
+@@ -1130,7 +1130,7 @@ void ArmnnPreparedModel_1_3<HalVersion>::ArmnnThreadPoolCallback_1_3<CallbackCon
      {
          m_CallbackContext.ctx.deviceStart = timeTaken.first;
          m_CallbackContext.ctx.deviceEnd = timeTaken.second;
@@ -93,3 +93,6 @@ index c8abc5e..c7253dc 100644
  
  template<template <typename HalVersion> class PreparedModel, typename HalVersion, typename CallbackContext>
  class RequestThread_1_3
+-- 
+2.18.0
+

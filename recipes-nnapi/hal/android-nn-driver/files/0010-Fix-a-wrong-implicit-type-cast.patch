@@ -1,7 +1,7 @@
-From d9a43274ccdfe676fe1f67f08d5bbf2b74960e24 Mon Sep 17 00:00:00 2001
+From 5f9289f1dc08762fe61777a5a9e6e27b182b2380 Mon Sep 17 00:00:00 2001
 From: Alexandre Bailon <abailon@baylibre.com>
 Date: Tue, 22 Mar 2022 09:31:49 +0000
-Subject: [PATCH] Fix a wrong implicit type cast
+Subject: [PATCH 10/10] Fix a wrong implicit type cast
 
 NNAPI fails to build because of an unknown symbol:
 bool android::nn::validateRequest<android::hardware::neuralnetworks::V1_0::Request, android::hardware::neuralnetworks::V1_3::Model>(android::hardware::neuralnetworks::V1_0::Request const&, android::hardware::neuralnetworks::V1_3::Model const&, bool)
@@ -15,10 +15,10 @@ Signed-off-by: Alexandre Bailon <abailon@baylibre.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/ArmnnPreparedModel.cpp b/ArmnnPreparedModel.cpp
-index 326351c..5df7f96 100644
+index d87f9f8..fea9048 100644
 --- a/ArmnnPreparedModel.cpp
 +++ b/ArmnnPreparedModel.cpp
-@@ -190,7 +190,7 @@ Return<V1_0::ErrorStatus> ArmnnPreparedModel<HalVersion>::execute(
+@@ -191,7 +191,7 @@ Return<V1_0::ErrorStatus> ArmnnPreparedModel<HalVersion>::execute(
          return V1_0::ErrorStatus::INVALID_ARGUMENT;
      }
  
@@ -28,5 +28,5 @@ index 326351c..5df7f96 100644
          NotifyCallbackAndCheck(callback, V1_0::ErrorStatus::INVALID_ARGUMENT, "ArmnnPreparedModel::execute");
          return V1_0::ErrorStatus::INVALID_ARGUMENT;
 -- 
-2.25.1
+2.18.0
 

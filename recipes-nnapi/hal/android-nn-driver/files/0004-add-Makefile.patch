@@ -1,19 +1,19 @@
-From fb63aa2b6a1fd6a8cf5f051c2a7ae87ea99fbf00 Mon Sep 17 00:00:00 2001
+From 4a0e09d24a6ac9d6613fb261de57e05534fb33c1 Mon Sep 17 00:00:00 2001
 From: Julien STEPHAN <jstephan@baylibre.com>
 Date: Tue, 29 Dec 2020 15:25:40 +0000
-Subject: [PATCH 4/5] add Makefile
+Subject: [PATCH 04/10] add Makefile
 
 Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
 ---
- Makefile      | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ Makefile      | 54 +++++++++++++++++++++++++++++++++++++++++++++++++++
  nn-driver.cpp | 28 ++++++++++++++++++++++++++
- 2 files changed, 83 insertions(+)
+ 2 files changed, 82 insertions(+)
  create mode 100644 Makefile
  create mode 100644 nn-driver.cpp
 
 diff --git a/Makefile b/Makefile
 new file mode 100644
-index 0000000..58d6c35
+index 0000000..4e0b946
 --- /dev/null
 +++ b/Makefile
 @@ -0,0 +1,54 @@
@@ -105,3 +105,6 @@ index 0000000..5efa953
 +}  // namespace neuralnetworks
 +}  // namespace hardware
 +}  // namespace android
+-- 
+2.18.0
+

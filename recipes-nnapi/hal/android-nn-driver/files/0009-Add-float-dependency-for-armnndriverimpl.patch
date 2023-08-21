@@ -1,7 +1,7 @@
-From e5bf9b9b06f50b3d56130e69eb95b57ad232ac1f Mon Sep 17 00:00:00 2001
+From 2d1cb29b69751eaa90c23ad87eb6e2e69bc06f2e Mon Sep 17 00:00:00 2001
 From: Suhrid Subramaniam <suhrid.subramaniam@mediatek.com>
 Date: Wed, 2 Feb 2022 14:26:28 -0800
-Subject: [PATCH] Add float dependency for armnndriverimpl
+Subject: [PATCH 09/10] Add float dependency for armnndriverimpl
 
 Signed-off-by: Suhrid Subramaniam <suhrid.subramaniam@mediatek.com>
 ---
@@ -33,3 +33,6 @@ index 5329a41..2f3ebc7 100644
  
  #include "../CacheDataHandler.hpp"
  #include "../DriverOptions.hpp"
+-- 
+2.18.0
+

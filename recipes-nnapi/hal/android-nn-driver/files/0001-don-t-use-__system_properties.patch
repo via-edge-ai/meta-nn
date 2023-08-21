@@ -1,7 +1,7 @@
-From 1068d7523f6a0bf2293f5af893b49ed0d08ef865 Mon Sep 17 00:00:00 2001
+From 37688301b65768b066f053072c580213481365fc Mon Sep 17 00:00:00 2001
 From: Julien STEPHAN <jstephan@baylibre.com>
 Date: Mon, 28 Dec 2020 10:29:37 +0000
-Subject: [PATCH] don't use __system_properties
+Subject: [PATCH 01/10] don't use __system_properties
 
 because we don't compile on android, `__system_property_find` is
 undefined, so use a `#if defined(__BIONIC__)` preprocessor to protect it
@@ -43,3 +43,6 @@ index 78e5ac7..cbb57c0 100644
 +#endif
  }
  } //namespace
+-- 
+2.18.0
+

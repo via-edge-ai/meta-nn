@@ -1,7 +1,7 @@
-From e4f1c6adf083a838c18e78dbd7b11f87c3ce77b2 Mon Sep 17 00:00:00 2001
+From 6206762e31c15c3e0704e5d47f541cf3e5c32546 Mon Sep 17 00:00:00 2001
 From: Julien STEPHAN <jstephan@baylibre.com>
 Date: Tue, 27 Apr 2021 12:08:08 +0200
-Subject: [PATCH] add gpu tuning file support
+Subject: [PATCH 05/10] add gpu tuning file support
 
 if /usr/share/armnn/gpu-tuner-file.csv is present then use it to improve
 performances
@@ -12,7 +12,7 @@ Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
  1 file changed, 23 insertions(+), 2 deletions(-)
 
 diff --git a/nn-driver.cpp b/nn-driver.cpp
-index 50f1cd0..06ad17d 100644
+index 5efa953..aa8f9b0 100644
 --- a/nn-driver.cpp
 +++ b/nn-driver.cpp
 @@ -2,8 +2,12 @@
@@ -57,3 +57,6 @@ index 50f1cd0..06ad17d 100644
  }
  
  }  // namespace V1_0
+-- 
+2.18.0
+

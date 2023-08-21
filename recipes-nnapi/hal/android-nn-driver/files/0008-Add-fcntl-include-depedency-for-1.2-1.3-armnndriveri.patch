@@ -1,7 +1,8 @@
-From eb28d4c99623ed140ee5a2c464a2ff8f354df043 Mon Sep 17 00:00:00 2001
+From bf7caf8b24802ed5feb504bab5265a12b0bc6876 Mon Sep 17 00:00:00 2001
 From: Suhrid Subramaniam <suhrid.subramaniam@mediatek.com>
 Date: Wed, 2 Feb 2022 14:03:50 -0800
-Subject: [PATCH] Add fcntl include depedency for 1.2, 1.3 armnndriverimpl
+Subject: [PATCH 08/10] Add fcntl include depedency for 1.2, 1.3
+ armnndriverimpl
 
 Signed-off-by: Suhrid Subramaniam <suhrid.subramaniam@mediatek.com>
 ---
@@ -47,3 +48,6 @@ index a482eda..5329a41 100644
 -} // namespace armnn_driver
 \ No newline at end of file
 +} // namespace armnn_driver
+-- 
+2.18.0
+

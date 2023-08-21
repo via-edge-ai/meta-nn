@@ -1,17 +1,17 @@
-From 606b904645b497f4ca3b6f6cfb1e01f5d4370184 Mon Sep 17 00:00:00 2001
+From f8997e19b716a67c812b4cf1bf56ff84bd04acd4 Mon Sep 17 00:00:00 2001
 From: "kidd-kw.chen" <kidd-kw.chen@mediatek.com>
 Date: Wed, 12 Jan 2022 17:12:22 +0800
-Subject: [PATCH] android-nn-driver: link libarmnnSerializer
+Subject: [PATCH 06/10] android-nn-driver: link libarmnnSerializer
 
 ---
  Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index d1d4385..e020d0e 100644
+index 4e0b946..b365b42 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -38,7 +38,7 @@ CFLAGS = -Wall -Werror -Wextra -std=c++17 -fPIC -fvisibility=default -Wno-incons
+@@ -39,7 +39,7 @@ CFLAGS = -Wall -Wextra -std=c++17 -fPIC -fvisibility=default -Wno-inconsistent-m
  
  CXXFLAGS += $(DEFINES) $(INCLUDES) $(CFLAGS)
  
