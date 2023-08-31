@@ -413,7 +413,7 @@ index 00000000..ecea76aa
 +            option->qos.abortTime = value;
 +        } else if (p.first.compare("qos-boostValue") == 0) {
 +            int value = std::stoi(p.second);
-+            option->qos.abortTime = value;
++            option->qos.boostValue = value;
 +        } else if (p.first.compare("qos-deadline") == 0) {
 +            int value = std::stoi(p.second);
 +            option->qos.deadline = value;
