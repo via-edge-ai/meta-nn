@@ -80,14 +80,33 @@ class Demo:
 
   def build_pipeline(self, engine):
     cmd = ''
-    cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2048,height=1536,format=YUY2,framerate=30/1 ! tee name=t_raw '
+    if self.cam_type == 'uvc':
+      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} io-mode=mmap ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=YUY2,framerate=30/1 ! tee name=t_raw '
+    elif self.cam_type == 'yuvsensor':
+      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2316,height=1746,format=UYVY,framerate=30/1 ! tee name=t_raw '
+    elif self.cam_type == 'rawsensor':
+      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2048,height=1536,format=YUY2,framerate=30/1 ! tee name=t_raw '
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! '
-    cmd += f'v4l2convert output-io-mode=dmabuf-import extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=RGB16,pixel-aspect-ratio=1/1 ! '
+
+    if self.cam_type == 'uvc':
+      cmd += f'videoconvert ! '
+    else:
+      cmd += f'v4l2convert output-io-mode=dmabuf-import extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=RGB16,pixel-aspect-ratio=1/1 ! '
+
     cmd += f'cairooverlay name=tensor_res ! '
-    cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="glimagesink sync=false qos=false " '
+
+    if self.cam_type == 'uvc':
+      cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="waylandsink sync=false qos=false fullscreen={self.FULLSCREEN}"'
+    else:
+      cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="glimagesink sync=false qos=false" '
 
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=2 ! '
-    cmd += f'v4l2convert output-io-mode=dmabuf-import capture-io-mode=mmap extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB,pixel-aspect-ratio=1/1 ! '
+
+    if self.cam_type == 'uvc':
+      cmd += f'videoconvert ! videoscale ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB ! '
+    else:
+      cmd += f'v4l2convert output-io-mode=dmabuf-import capture-io-mode=mmap extra-controls="cid,rotate={self.CAM_ROT}" ! video/x-raw,width={self.MODEL_INPUT_WIDTH},height={self.MODEL_INPUT_HEIGHT},format=RGB,pixel-aspect-ratio=1/1 ! '
+
     cmd += f'tensor_converter ! '
     cmd += f'tensor_transform mode=arithmetic option=typecast:float32,add:-127.5,div:127.5 ! '
 
@@ -130,7 +149,6 @@ class Demo:
               decoded_detections = list(np.frombuffer(info_detections.data, dtype=np.float32)) # decode bytestrings to float list
 
           idx = 0
-
           boxes = []
           for _ in range(self.DETECTION_MAX):
               box = []
@@ -140,7 +158,6 @@ class Demo:
               boxes.append(box)
 
           idx = 0
-
           detections = []
           for _ in range(self.DETECTION_MAX):
               detection = []
@@ -424,7 +441,7 @@ class Demo:
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
-  args = argument_parser_init(True)
+  args = argument_parser_init()
 
   example = Demo(sys.argv[1:])
   example.CAM_ID = args.cam
@@ -433,6 +450,14 @@ if __name__ == '__main__':
   example.FULLSCREEN = args.fullscreen
   example.THROUGHPUT = args.throughput
   example.CAM_ROT = args.rot
+  example.cam_type = args.cam_type
+
+  if example.cam_type == 'uvc':
+    example.VIDEO_WIDTH = 640
+    example.VIDEO_HEIGHT = 480
+  else:
+    example.VIDEO_WIDTH = 720
+    example.VIDEO_HEIGHT = 1280
 
   enable_performance(args.performance)
 

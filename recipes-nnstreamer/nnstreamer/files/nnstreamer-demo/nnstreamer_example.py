@@ -11,7 +11,7 @@ import argparse
 available_engine=['TBD', 'tflite', 'armnn']
 toggle_flags = ['0', '1']
 
-def argument_parser_init(enable_cam_rot):
+def argument_parser_init():
   if find_nnapi_delegate_library() != 'null':
     available_engine[0] = 'nnapi'
   if find_neuron_library() != 'null':
@@ -37,6 +37,13 @@ def argument_parser_init(enable_cam_rot):
            '   /dev/video131 \n' + 
            '  ... \n' + 
            '  \n')
+
+  parser.add_argument(
+      '--cam_type',
+      default='uvc',
+      choices=['uvc', 'yuvsensor', 'rawsensor'],
+      required=True,
+      help='Choose correct type of camera being used for the demo, ex: yuvsensor')
 
   parser.add_argument(
       '--width',
@@ -73,12 +80,11 @@ def argument_parser_init(enable_cam_rot):
              '1: Enable\n'
              '0: Disable\n')
 
-  if enable_cam_rot == True:
-    parser.add_argument(
-        '--rot',
-        default=0,
-        type=int,
-        help='Rotate the camera image by degrees, ex: 90\n')
+  parser.add_argument(
+      '--rot',
+      default=0,
+      type=int,
+      help='Rotate the camera image by degrees, ex: 90\n')
 
 
   args = parser.parse_args()
