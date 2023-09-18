@@ -9,7 +9,6 @@ import subprocess
 import argparse
 
 available_engine=['TBD', 'tflite', 'armnn']
-available_platform=['NA', 'G1200', 'G700', 'G350']
 toggle_flags = ['0', '1']
 
 def argument_parser_init(enable_cam_rot):
@@ -53,9 +52,10 @@ def argument_parser_init(enable_cam_rot):
 
   parser.add_argument(
       '--performance',
-      default=available_platform[0],
-      choices=available_platform,
-      help='Select platform and make CPU/GPU/APU run under performance mode, ex: G1200')
+      default=0,
+      choices=[0, 1],
+      type=int,
+      help='Enable to make CPU/GPU/APU run under performance mode, ex: 1')
 
   parser.add_argument(
         '--fullscreen',
@@ -84,54 +84,22 @@ def argument_parser_init(enable_cam_rot):
   args = parser.parse_args()
   return args
 
-def g1200_performance_mode():
-  batcmd = 'echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor'
+def performance_mode():
+  batcmd = 'for i in /sys/devices/system/cpu/cpufreq/policy*; do echo performance > ${i}/scaling_governor; done'
   subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  batcmd = 'echo performance > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor'
+  batcmd = 'echo performance > /sys/devices/platform/soc/*.mali/devfreq/*.mali/governor'
   subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  batcmd = 'echo performance > /sys/devices/platform/soc/13000000.mali/devfreq/13000000.mali/governor'
-  subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  batcmd = 'echo dvfs_debug 0 > /sys/kernel/debug/apusys/power'
+  batcmd = 'if [ -f /sys/kernel/debug/apusys/power ]; then echo dvfs_debug 0 > /sys/kernel/debug/apusys/power; fi;'
   subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
   batcmd = 'echo disabled > /sys/class/thermal/thermal_zone0/mode'
   subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  logging.info("Set G1200 performance mode")
+  logging.info("Set performance mode")
 
-def g700_performance_mode():
-  batcmd = 'echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor'
-  subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  batcmd = 'echo performance > /sys/devices/system/cpu/cpufreq/policy6/scaling_governor'
-  subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  batcmd = 'echo performance > /sys/devices/platform/soc/13000000.mali/devfreq/13000000.mali/governor'
-  subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  batcmd = 'echo dvfs_debug 0 > /sys/kernel/debug/apusys/power'
-  subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  batcmd = 'echo disabled > /sys/class/thermal/thermal_zone0/mode'
-  subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  logging.info("Set G700 performance mode")
-
-def g350_performance_mode():
-  for i in range(4):
-    batcmd = 'echo userspace > /sys/devices/system/cpu/cpu'+str(i)+'/cpufreq/scaling_governor'
-    subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-    batcmd = 'echo 2001000 > /sys/devices/system/cpu/cpu'+str(i)+'/cpufreq/scaling_setspeed'
-    subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  
-  batcmd = 'echo performance > /sys/devices/platform/soc/13040000.mali/devfreq/13040000.mali/governor'
-  subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  batcmd = 'echo disabled > /sys/class/thermal/thermal_zone0/mode'
-  subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-  logging.info("Set G350 performance mode")
-
-def performance_hint(platform):
-  if platform == 'G1200':
-    g1200_performance_mode()
-  elif platform == 'G700': 
-    g700_performance_mode()
-  elif platform == 'G350':
-    g350_performance_mode()
+def performance_hint(option):
+  if option == 1:
+    performance_mode()
   else:
-    logging.info("No performance hint")
+    logging.info("Performance mode not set")
 
 def find_armnn_delegate_library():
   cmd = 'ls -l /usr/lib/libarmnnDelegate.so.*'
