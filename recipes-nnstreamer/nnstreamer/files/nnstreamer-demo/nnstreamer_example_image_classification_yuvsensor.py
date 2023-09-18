@@ -256,7 +256,7 @@ if __name__ == '__main__':
   example.THROUGHPUT = args.throughput
   example.CAM_ROT = args.rot
 
-  performance_hint(args.performance)
+  enable_performance(args.performance)
 
   example.build_pipeline(args.engine)
   example.run()

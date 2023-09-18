@@ -253,7 +253,7 @@ if __name__ == '__main__':
   example.FULLSCREEN = args.fullscreen
   example.THROUGHPUT = args.throughput
 
-  performance_hint(args.performance)
+  enable_performance(args.performance)
 
   example.build_pipeline(args.engine)
   example.run()

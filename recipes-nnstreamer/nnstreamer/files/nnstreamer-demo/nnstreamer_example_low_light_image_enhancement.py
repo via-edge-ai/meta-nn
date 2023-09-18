@@ -243,7 +243,7 @@ if __name__ == '__main__':
   example.IMG_HEIGHT = args.height
   example.export_image = args.export
 
-  performance_hint(args.performance)
+  enable_performance(args.performance)
 
   example.build_pipeline(args.engine)
   example.run()

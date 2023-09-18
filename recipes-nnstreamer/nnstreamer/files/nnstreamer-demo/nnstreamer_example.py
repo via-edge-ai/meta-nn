@@ -95,7 +95,7 @@ def performance_mode():
   subprocess.run(batcmd, shell=True, check=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
   logging.info("Set performance mode")
 
-def performance_hint(option):
+def enable_performance(option):
   if option == 1:
     performance_mode()
   else:
