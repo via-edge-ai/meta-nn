@@ -48,16 +48,11 @@ do_install:append() {
 	install -d ${D}${bindir}/nnstreamer-demo
 
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_pose_estimation_uvc.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_pose_estimation_yuvsensor.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection_yolov5_uvc.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection_yolov5_yuvsensor.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection_uvc.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection_yuvsensor.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_image_classification_uvc.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_image_classification_yuvsensor.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_face_detection_uvc.py ${D}${bindir}/nnstreamer-demo
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_face_detection_yuvsensor.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_pose_estimation.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection_yolov5.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_image_classification.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_face_detection.py ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_low_light_image_enhancement.py ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/yolov5s-int8.tflite ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/ssd_mobilenet_v2_coco.tflite ${D}${bindir}/nnstreamer-demo
