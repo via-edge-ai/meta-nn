@@ -9,7 +9,9 @@ import subprocess
 import argparse
 
 available_engine=['TBD', 'tflite', 'armnn']
+available_app=['image_classification', 'object_detection', 'object_detection_yolov5','face_detection', 'pose_estimation', 'low_light_image_enhancement']
 toggle_flags = ['0', '1']
+
 
 def argument_parser_init():
   if find_nnapi_delegate_library() != 'null':
@@ -18,6 +20,11 @@ def argument_parser_init():
     available_engine[0] = 'neuronsdk'
 
   parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+  parser.add_argument(
+      '--app',
+      default=available_app[0],
+      choices=available_app,
+      help='Choose a demo app to run. Default: %s' % available_app[0])
   parser.add_argument(
       '--engine',
       default=available_engine[0],
