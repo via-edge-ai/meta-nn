@@ -31,6 +31,12 @@ def argument_parser_init():
       choices=available_engine,
       help='Choose a backends to inference. Default: %s' % available_engine[0])
   parser.add_argument(
+      '--img',
+      default=None,
+      help='Input a image file path.\n' +
+           'Example: /usr/bin/nnstreamer-demo/original.png\n'
+           'Note: This paramater is dedicated to low light enhancement app\n')
+  parser.add_argument(
       '--cam',
       default=0,
       type=int,
@@ -42,7 +48,8 @@ def argument_parser_init():
            '   C922 Pro Stream Webcam (usb-11290000.xhci-1.2): \n' + 
            '   /dev/video130 \n' + 
            '   /dev/video131 \n' + 
-           '  ... \n' + 
+           '  ... \n' +
+           'Note: This paramater is for all the apps except low light enhancement app.' 
            '  \n')
 
   parser.add_argument(
@@ -50,7 +57,8 @@ def argument_parser_init():
       default='uvc',
       choices=['uvc', 'yuvsensor', 'rawsensor'],
       required=True,
-      help='Choose correct type of camera being used for the demo, ex: yuvsensor')
+      help='Choose correct type of camera being used for the demo, ex: yuvsensor\n' +
+      'Note: This paramater is for all the apps except low light enhancement app.\n')
 
   parser.add_argument(
       '--width',
@@ -77,7 +85,8 @@ def argument_parser_init():
         choices=toggle_flags,
         help='Fullscreen preview.\n'
              '1: Enable\n'
-             '0: Disable\n')
+             '0: Disable\n'
+             'Note: This paramater is for all the apps except low light enhancement app.\n')
 
   parser.add_argument(
         '--throughput',
@@ -91,7 +100,8 @@ def argument_parser_init():
       '--rot',
       default=0,
       type=int,
-      help='Rotate the camera image by degrees, ex: 90\n')
+      help='Rotate the camera image by degrees, ex: 90\n'
+            'Note: This paramater is for all the apps except low light enhancement app.\n')
 
 
   args = parser.parse_args()

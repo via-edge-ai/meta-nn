@@ -184,58 +184,10 @@ class Demo:
                   img.show()
                   mem.unmap(mapinfo)
 
-def argument_parser():
-  available_engine=['TBD', 'tflite', 'armnn']
-  available_platform=['NA', 'G1200', 'G700', 'G350']
-
-  if find_nnapi_delegate_library() != 'null':
-    available_engine[0] = 'nnapi'
-  if find_neuron_library() != 'null':
-    available_engine[0] = 'neuronsdk'
-
-  parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-  parser.add_argument(
-      '--engine',
-      default=available_engine[0],
-      choices=available_engine,
-      help='Choose a backends to inference. Default: %s' % available_engine[0])
-
-  parser.add_argument(
-      '--img',
-      default=None,
-      help='Input a image file path .\n' +
-           'Example: /usr/bin/nnstreamer-demo/original.png\n')
-
-  parser.add_argument(
-      '--export',
-      default='low_light_enhancement',
-      help='Input a filename for the saved png image\n' +
-           'Example: low_light_enhancement\n')
-
-  parser.add_argument(
-      '--width',
-      default=600,
-      type=int,
-      help='Input image file width, ex: 600')
-
-  parser.add_argument(
-      '--height',
-      default=400,
-      type=int,
-      help='Input image file height, ex: 400')
-
-  parser.add_argument(
-      '--performance',
-      default=available_platform[0],
-      choices=available_platform,
-      help='Select platform and make CPU/GPU/APU run under performance mode, ex: G1200')
-
-  args = parser.parse_args()
-  return args
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
-  args = argument_parser()
+  args = argument_parser_init()
 
   example = Demo(sys.argv[1:])
   example.image_path = args.img
