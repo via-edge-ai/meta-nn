@@ -47,7 +47,8 @@ do_install:append() {
 
 	install -d ${D}${bindir}/nnstreamer-demo
 
-	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example.py ${D}${bindir}/nnstreamer-demo
+	install -m 644 ${WORKDIR}/nnstreamer-demo/run_nnstreamer_example.py ${D}${bindir}/nnstreamer-demo
+        install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example.py ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_pose_estimation.py ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection_yolov5.py ${D}${bindir}/nnstreamer-demo
 	install -m 644 ${WORKDIR}/nnstreamer-demo/nnstreamer_example_object_detection.py ${D}${bindir}/nnstreamer-demo
