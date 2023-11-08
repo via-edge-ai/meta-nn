@@ -83,7 +83,7 @@ class Demo:
     if self.cam_type == 'uvc':
       cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} io-mode=mmap ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=YUY2,framerate=30/1 ! tee name=t_raw '
     elif self.cam_type == 'yuvsensor':
-      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2316,height=1746,format=UYVY,framerate=30/1 ! tee name=t_raw '
+      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=1920,height=1080,format=UYVY,framerate=30/1 ! tee name=t_raw '
     elif self.cam_type == 'rawsensor':
       cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2048,height=1536,format=YUY2,framerate=30/1 ! tee name=t_raw '
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! '
@@ -445,8 +445,6 @@ if __name__ == '__main__':
 
   example = Demo(sys.argv[1:])
   example.CAM_ID = args.cam
-  example.VIDEO_WIDTH = args.width
-  example.VIDEO_HEIGHT = args.height
   example.FULLSCREEN = args.fullscreen
   example.THROUGHPUT = args.throughput
   example.CAM_ROT = args.rot
@@ -456,9 +454,12 @@ if __name__ == '__main__':
     example.VIDEO_WIDTH = 640
     example.VIDEO_HEIGHT = 480
   else:
-    example.VIDEO_WIDTH = 720
-    example.VIDEO_HEIGHT = 1280
+    example.VIDEO_WIDTH = 1920
+    example.VIDEO_HEIGHT = 1080
 
+  example.VIDEO_WIDTH = args.width
+  example.VIDEO_HEIGHT = args.height
+  
   enable_performance(args.performance)
 
   example.build_pipeline(args.engine)
