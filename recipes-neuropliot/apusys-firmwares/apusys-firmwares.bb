@@ -2,8 +2,6 @@ DESCRIPTION = "Prebuilt firmwares of Mediatek APUSYS"
 LICENSE = "LicenseRef-MediaTek-AIoT-SLA-1"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c25f59288708e3fd9961c9e6142aafee"
 
-inherit features_check
-
 SRCREV:mt8195 = "2502c4bf3eabec12ef1d4a8098f419b2f1a2f6e0"
 SRCREV:mt8188 = "9c08e0beaf59d216a2c1d8314fee12202a189641"
 SRCREV:mt8370 = "9c08e0beaf59d216a2c1d8314fee12202a189641"

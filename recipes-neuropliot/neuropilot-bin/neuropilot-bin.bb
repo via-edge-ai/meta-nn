@@ -2,8 +2,6 @@ DESCRIPTION = "Prebuilt libraries of Mediatek NeuroPilot"
 LICENSE = "LicenseRef-MediaTek-AIoT-SLA-1"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c25f59288708e3fd9961c9e6142aafee"
 
-inherit features_check
-
 DEPENDS += " libcxx ncurses "
 RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow python3-numpy zlib "
 
