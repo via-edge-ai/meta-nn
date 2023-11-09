@@ -3,7 +3,6 @@ LICENSE = "LicenseRef-MediaTek-AIoT-SLA-1"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c25f59288708e3fd9961c9e6142aafee"
 
 inherit features_check
-REQUIRED_DISTRO_FEATURES = "nda-mtk"
 
 DEPENDS += " libcxx ncurses "
 RDEPENDS:${PN} += " libcxx ncurses libstdc++ python3-pillow python3-numpy zlib "
@@ -21,7 +20,7 @@ RPROVIDES:${PN} = " \
 BRANCH = "${DISTRO_CODENAME}"
 
 SRCREV = "0d6a725fb882d596f00ce5b70960a7e28b6dbd6b"
-SRC_URI += "git://git@gitlab.com/mediatek/aiot/nda/mtk-neuropilot-prebuilts.git;protocol=ssh;branch=${BRANCH} \
+SRC_URI += "git://git@gitlab.com/mediatek/aiot/rity/mtk-neuropilot-prebuilts.git;protocol=ssh;branch=${BRANCH} \
 "
 
 S = "${WORKDIR}/git"
