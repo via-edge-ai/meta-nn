@@ -24,7 +24,7 @@ import subprocess
 ############################################################################
 
 gi.require_version('Gst', '1.0')
-from gi.repository import Gst, GObject
+from gi.repository import Gst, GLib
 from nnstreamer_example import *
 
 class Demo:
@@ -55,7 +55,6 @@ class Demo:
     if not self.tflite_init():
         raise Exception
 
-    GObject.threads_init()
     Gst.init(argv)
 
   def build_pipeline(self, engine):
@@ -171,7 +170,7 @@ class Demo:
       logging.info("Run: Image classification.")
 
       # main loop
-      self.loop = GObject.MainLoop()
+      self.loop = GLib.MainLoop()
 
       # bus and message callback
       bus = self.pipeline.get_bus()
@@ -183,7 +182,7 @@ class Demo:
       tensor_sink.connect('new-data', self.on_new_data)
 
       # timer to update result
-      GObject.timeout_add(500, self.on_timer_update_result)
+      GLib.timeout_add(500, self.on_timer_update_result)
 
       # textoverlay to display throughput information of tensor_filter
       self.textoverlay = self.pipeline.get_by_name('label')

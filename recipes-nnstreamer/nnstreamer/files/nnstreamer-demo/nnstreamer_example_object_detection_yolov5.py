@@ -33,7 +33,7 @@ import subprocess
 gi.require_version('Gst', '1.0')
 gi.require_version('GstGL', '1.0')
 
-from gi.repository import Gst, GstGL, GObject
+from gi.repository import Gst, GstGL, GLib
 from nnstreamer_example import *
 
 class Demo:
@@ -61,7 +61,6 @@ class Demo:
     if not self.tflite_init():
         raise Exception
 
-    GObject.threads_init()
     Gst.init(argv)
 
   def build_pipeline(self, engine):
@@ -136,7 +135,7 @@ class Demo:
       logging.info("Run: Object detection.")
 
       # main loop
-      self.loop = GObject.MainLoop()
+      self.loop = GLib.MainLoop()
 
       # bus and message callback
       bus = self.pipeline.get_bus()
