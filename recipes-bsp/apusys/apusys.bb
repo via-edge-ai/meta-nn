@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=16de935ebcebe2420535844d4f6faefc"
 
 inherit module
 
-SRCREV = "2381afa32286e186f329d426b705874c3d898ced"
+SRCREV = "ce53cbf9e704d777a2b38b0ffdcf62315b0636bd"
 
 BRANCH = "android13"
 
