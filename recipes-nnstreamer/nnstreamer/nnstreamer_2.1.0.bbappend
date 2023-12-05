@@ -3,26 +3,26 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 # Patches for building nnstreamer with tensorflow-lite, armnn and neuronsdk support
 # on IoT Yocto.
 SRC_URI:append = " \
-	file://0001-nnstreamer-Fix-include-header-header-in-tensorflow-d.patch \
-	file://0002-nnstreamer-Disable-nnapi.patch \
-	file://0003-nnstreamer-Add-tensor-filter-neuronsdk.patch \
-	file://0004-nnstreamer-Fix-unittest-fail.patch \
-	file://0005-nnstreamer-example-Add-unit-test-fo-tensor-filter-ne.patch \
-	file://0006-nnstreamer-Fix-detect-objects-array-is-out-of-bound-.patch \
-	file://0007-nnstreamer-Add-custom-property-debug-to-print-infere.patch \
-	file://sample_1x4x4x4_two_input_one_output.tflite \
-	file://sample_1x4x4x4_two_input_two_output.tflite \
-	file://nnstreamer-demo \
+       file://0001-nnstreamer-Fix-include-header-header-in-tensorflow-d.patch \
+       file://0002-nnstreamer-Disable-nnapi.patch \
+       file://0003-nnstreamer-Add-tensor-filter-neuronsdk.patch \
+       file://0004-nnstreamer-Fix-unittest-fail.patch \
+       file://0005-nnstreamer-example-Add-unit-test-fo-tensor-filter-ne.patch \
+       file://0006-nnstreamer-Fix-detect-objects-array-is-out-of-bound-.patch \
+       file://0007-nnstreamer-Add-custom-property-debug-to-print-infere.patch \
+       file://sample_1x4x4x4_two_input_one_output.tflite \
+       file://sample_1x4x4x4_two_input_two_output.tflite \
+       file://nnstreamer-demo \
+       file://0008-nnstreamer-Update-neuron-delegate-version-to-6.3.3.patch \
 "
 
 # Flags to check if neuron is available on current platform
-NEURON_PLATFORM = "${@bb.utils.contains_any('SOC_FAMILY',  'mt8195 mt8188', '1', '0', d)}"
-NEURON = "${@ "1" if d.getVar('NEURON_PLATFORM') == '1' and d.getVar('NDA_BUILD') == '1' else "0" }"
+NEURON_PLATFORM = "${@bb.utils.contains_any('SOC_FAMILY',  'mt8195 mt8188 mt8370', '1', '0', d)}"
 
 DEPENDS:append = "\
 	python3-numpy-native \
 	armnn \
-	${@bb.utils.contains('NEURON', '1', 'virtual/libneuron', ' ', d)} \
+	${@bb.utils.contains('NEURON_PLATFORM', '1', 'virtual/libneuron', ' ', d)} \
 	${@bb.utils.contains('TFLITE_PREBUILT', '1', 'tensorflowlite-prebuilt', 'tensorflow-lite', d)} \
 "
 
@@ -35,7 +35,7 @@ EXTRA_OEMESON:append = "\
 	-Darmnn-support=enabled \
 	-Dtflite2-support=enabled \
 	-Dpython3-support=enabled \
-	${@bb.utils.contains('NEURON', '1', '-Dneuronsdk-support=enabled', ' ', d)} \
+	${@bb.utils.contains('NEURON_PLATFORM', '1', '-Dneuronsdk-support=enabled', ' ', d)} \
 	--buildtype=release \
 "
 
