@@ -9,7 +9,8 @@ SRC_URI += " \
            file://0001-tensorflow-lite-add-external-delegate.patch \
            file://0001-tflite-label_image.py-use-tflite-interpreter.patch \
            file://0001-add-cutom-ops.patch \
-           file://tensorflow2-lite-2.10.0.pc \
+           file://tensorflow2-lite-2.14.0.pc \
+           file://0001-Ensure-that-we-don-t-try-to-link-against-lnativewind.patch \
 "
 
 DEPENDS += "virtual/libegl \
@@ -28,11 +29,6 @@ TF_TARGET_EXTRA += " \
 TF_ARGS_EXTRA += " \
          --copt -DCL_DELEGATE_NO_GL \
 "
-
-# Tensorflow-lite default enable xnnpack. If you want to disable it, please set tflite_with_xnnpack as false
-# Ex. Arm NN DelegateUnitTest has to work with Tensorflow-lite without xnnpack, so we will add following 
-#     configuration to build Tensorflow-lite without xnnpack
-CUSTOM_BAZEL_FLAGS += " --define tflite_with_xnnpack=false "
 
 do_install:append() {
         # install external delegates
@@ -69,7 +65,7 @@ do_install:append() {
         done
 
         install -d ${D}${libdir}/pkgconfig
-        install -m 644 ${WORKDIR}/tensorflow2-lite-2.10.0.pc ${D}${libdir}/pkgconfig/tensorflow2-lite.pc
+        install -m 644 ${WORKDIR}/tensorflow2-lite-2.14.0.pc ${D}${libdir}/pkgconfig/tensorflow2-lite.pc
 
         install -m 0644 ${S}/tensorflow/lite/schema/schema.fbs ${D}${includedir}/tensorflow/lite/schema/
 }

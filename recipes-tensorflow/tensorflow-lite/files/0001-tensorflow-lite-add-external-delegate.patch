@@ -11,40 +11,40 @@ Signed-off-by: Julien STEPHAN <jstephan@baylibre.com>
  1 file changed, 4 insertions(+)
 
 diff --git a/tensorflow/lite/BUILD b/tensorflow/lite/BUILD
-index 83bac756f13..faa089a9fb5 100644
+index 72500e85ef1..260e0cee860 100644
 --- a/tensorflow/lite/BUILD
 +++ b/tensorflow/lite/BUILD
-@@ -431,6 +431,7 @@ cc_library(
+@@ -497,6 +497,7 @@ cc_library_with_tflite(
          ":string",
          ":type_to_tflitetype",
          ":util",
 +        "//tensorflow/lite/delegates/external:external_delegate",
-         "//tensorflow/lite/c:common",
-         "//tensorflow/lite/core/api",
-         "//tensorflow/lite/core/api:verifier",
-@@ -472,6 +473,7 @@ cc_library(
-         ":string",
-         ":type_to_tflitetype",
-         ":util",
-+        "//tensorflow/lite/delegates/external:external_delegate",
-         "//tensorflow/lite/c:common",
-         "//tensorflow/lite/core/api",
-         "//tensorflow/lite/core/api:verifier",
-@@ -547,6 +549,7 @@ cc_library(
-         ":version",
-         "@flatbuffers//:runtime_cc",
-         "@ruy//ruy:denormal",
-+        "//tensorflow/lite/delegates/external:external_delegate",
-         "//tensorflow/lite/c:c_api_types",
-         "//tensorflow/lite/c:common",
          "//tensorflow/lite/c:common_internal",
-@@ -862,6 +865,7 @@ cc_test(
+         "//tensorflow/lite/core:cc_api_stable",
+         "//tensorflow/lite/core:framework_stable",
+@@ -543,6 +544,7 @@ cc_library_with_tflite(
          ":string",
-         ":string_util",
+         ":type_to_tflitetype",
          ":util",
 +        "//tensorflow/lite/delegates/external:external_delegate",
-         "//tensorflow/lite/c:c_api_types",
-         "//tensorflow/lite/c:common",
-         "//tensorflow/lite/delegates/utils:simple_delegate",
--- 
+         "//tensorflow/lite/c:common_internal",
+         "//tensorflow/lite/core:cc_api_stable",
+         "//tensorflow/lite/core:framework_experimental",
+@@ -614,6 +616,7 @@ cc_library_with_tflite(
+         ":type_to_tflitetype",
+         ":util",
+         ":version",
++        "//tensorflow/lite/delegates/external:external_delegate",
+         "//tensorflow/lite/c:common_internal",
+         "//tensorflow/lite/core:cc_api_stable",
+         "//tensorflow/lite/core:model_builder",
+@@ -691,6 +694,7 @@ cc_library_with_tflite(
+         ":string",
+         ":type_to_tflitetype",
+         ":util",
++        "//tensorflow/lite/delegates/external:external_delegate",
+         "//tensorflow/lite/c:common_internal",
+         "//tensorflow/lite/core:cc_api_experimental",
+         "//tensorflow/lite/core/api",
+--
 2.25.1
