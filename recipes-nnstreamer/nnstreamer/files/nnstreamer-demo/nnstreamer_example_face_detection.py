@@ -80,11 +80,11 @@ class Demo:
   def build_pipeline(self, engine):
     cmd = ''
     if self.cam_type == 'uvc':
-      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} io-mode=mmap ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=YUY2,framerate=30/1 ! tee name=t_raw '
+      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} io-mode=mmap ! video/x-raw,width={self.VIDEO_WIDTH},height={self.VIDEO_HEIGHT},format=YUY2 ! tee name=t_raw '
     elif self.cam_type == 'yuvsensor':
-      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=1920,height=1080,format=UYVY,framerate=30/1 ! tee name=t_raw '
+      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=1920,height=1080,format=UYVY ! tee name=t_raw '
     elif self.cam_type == 'rawsensor':
-      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2048,height=1536,format=YUY2,framerate=30/1 ! tee name=t_raw '
+      cmd += f'v4l2src name=src device=/dev/video{self.CAM_ID} ! video/x-raw,width=2048,height=1536,format=YUY2 ! tee name=t_raw '
     cmd += f't_raw. ! queue leaky=2 max-size-buffers=10 ! '
 
     if self.cam_type == 'uvc':
