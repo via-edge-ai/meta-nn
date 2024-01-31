@@ -18,7 +18,7 @@ RPROVIDES:${PN} = " \
 BRANCH = "${DISTRO_CODENAME}"
 
 SRCREV = "e6223cd44f471eea8805b0e590174bfec7b1dc8d"
-SRC_URI += "git://git@gitlab.com/mediatek/aiot/rity/mtk-neuropilot-prebuilts.git;protocol=ssh;branch=${BRANCH} \
+SRC_URI += "${AIOT_RITY_URI}/mtk-neuropilot-prebuilts.git;protocol=https;branch=${BRANCH} \
 "
 
 S = "${WORKDIR}/git"

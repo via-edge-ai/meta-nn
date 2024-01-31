@@ -12,7 +12,7 @@ BRANCH = "${SOC_FAMILY}"
 # The firmware for mt8188 also supports mt8370
 BRANCH:mt8370 = "mt8188"
 
-SRC_URI += "git://git@gitlab.com/mediatek/aiot/bsp/mtk-apusys-firmware.git;protocol=ssh;branch=${BRANCH} \
+SRC_URI += "${AIOT_BSP_URI}/mtk-apusys-firmware.git;protocol=https;branch=${BRANCH} \
            "
 
 S = "${WORKDIR}/git"

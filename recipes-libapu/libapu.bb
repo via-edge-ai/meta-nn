@@ -8,7 +8,7 @@ DEPENDS = "libdrm"
 RDEPENDS:${PN} = "libdrm-apu"
 
 SRCREV = "01d91fa946522d56331522a8da2b97c90ba27d2e"
-SRC_URI = "git://git@gitlab.com/mediatek/aiot/bsp/open-amp.git;branch=mtk-android-11;protocol=ssh"
+SRC_URI = "${AIOT_BSP_URI}/open-amp.git;branch=mtk-android-11;protocol=https"
 
 EXTRA_OEMAKE = " \
     'PREFIX=${STAGING_DIR_TARGET}/usr/' \

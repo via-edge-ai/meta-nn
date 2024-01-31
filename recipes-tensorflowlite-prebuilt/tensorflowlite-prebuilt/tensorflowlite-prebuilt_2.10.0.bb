@@ -20,7 +20,7 @@ SRCREV = "bdf2128a2cb37803e81894fc94ddbffcc3275e51"
 BRANCH = "v2_10_0"
 TFLITE_ENABLE_XNNPACK = "0"
 
-SRC_URI += "${AIOT_RITY_URI}/tensorflowlite-prebuilt.git;protocol=ssh;branch=${BRANCH} \
+SRC_URI += "${AIOT_RITY_URI}/tensorflowlite-prebuilt.git;protocol=https;branch=${BRANCH} \
            "
 
 S = "${WORKDIR}/git"
