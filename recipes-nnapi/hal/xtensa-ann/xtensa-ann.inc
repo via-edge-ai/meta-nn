@@ -16,7 +16,7 @@ RPROVIDES:${PN} = "libvendor-nn-hal"
 SRCREV_FORMAT = "prebuilts"
 SRCREV_prebuilts = "f9415597b98788f48ba8b86b56d070a3f833e636"
 
-SRC_URI = "git://git@gitlab.com/mediatek/aiot/nda-cadence/prebuilts.git;protocol=ssh;branch=main;destsuffix=prebuilts;name=prebuilts"
+SRC_URI = "${AIOT_URI}/nda-cadence/prebuilts.git;protocol=ssh;branch=main;destsuffix=prebuilts;name=prebuilts"
 
 do_install() {
     install -d ${D}/${nonarch_base_libdir}
