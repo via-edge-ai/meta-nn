@@ -28,4 +28,6 @@ if __name__ == '__main__':
     os.system("python3 /usr/bin/nnstreamer-demo/nnstreamer_example_pose_estimation.py {0}".format(tmp_args))
   elif args.app == 'low_light_image_enhancement':
     os.system("python3 /usr/bin/nnstreamer-demo/nnstreamer_example_low_light_image_enhancement.py {0}".format(tmp_args))
+  elif args.app == 'monocular_depth_estimation':
+    os.system("python3 /usr/bin/nnstreamer-demo/nnstreamer_example_monocular_depth_estimation.py {0}".format(tmp_args))
 

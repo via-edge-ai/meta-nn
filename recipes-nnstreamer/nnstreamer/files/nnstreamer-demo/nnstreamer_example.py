@@ -9,7 +9,7 @@ import subprocess
 import argparse
 
 available_engine=['TBD', 'tflite', 'armnn']
-available_app=['image_classification', 'object_detection', 'object_detection_yolov5','face_detection', 'pose_estimation', 'low_light_image_enhancement']
+available_app=['image_classification', 'object_detection', 'object_detection_yolov5','face_detection', 'pose_estimation', 'low_light_image_enhancement', 'monocular_depth_estimation']
 toggle_flags = ['0', '1']
 
 
@@ -86,7 +86,7 @@ def argument_parser_init():
         help='Fullscreen preview.\n'
              '1: Enable\n'
              '0: Disable\n'
-             'Note: This paramater is for all the apps except low light enhancement app.\n')
+             'Note: This paramater is for all the apps except low light enhancement app and monocular depth estimation app.\n')
 
   parser.add_argument(
         '--throughput',
