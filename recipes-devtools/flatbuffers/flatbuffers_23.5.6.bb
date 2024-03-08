@@ -10,9 +10,9 @@ DEPENDS = "flatbuffers-native"
 RDEPENDS:${PN}-compiler = "${PN}"
 RDEPENDS:${PN}-dev += "${PN}-compiler"
 
-LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=3b83ef96387f14655fc854ddc3c6bd57"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
-SRCREV = "615616cb5549a34bdf288c04bc1b94bd7a65c396"
+SRCREV = "0100f6a5779831fa7a651e4b67ef389a8752bd9b"
 SRC_URI = "git://github.com/google/flatbuffers.git;branch=master;protocol=https"
 S = "${WORKDIR}/git"
 
