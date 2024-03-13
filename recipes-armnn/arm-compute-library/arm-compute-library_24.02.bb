@@ -12,9 +12,10 @@ SRC_URI = "git://github.com/ARM-software/ComputeLibrary.git;protocol=https;branc
            file://0001-enable-yocto-build.patch \
            file://0001-Remove-unknown-variables-treated-as-error.patch \
            file://0001-Prefer-to-use-libmali-as-the-provider-of-OpenCL.patch \
+	   file://0001-remove-clUpdateMutableCommandsKHR-reference.patch \
            "
 
-SRCREV = "d8bf9b53752a4f573120cf51b31055de8b3c7d29"
+SRCREV = "bc89a0b690200750040770bda0981f4a37b389c4"
 
 # assign correct arch manually
 SOC_ARCH:mt8188 = "arm64-v8.2-a"
