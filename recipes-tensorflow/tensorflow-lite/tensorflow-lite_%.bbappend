@@ -64,6 +64,8 @@ do_install:append() {
                 install -m 0644 "${file}" "${D}${includedir}/${file}"
         done
 
+	cp -r ${WORKDIR}/bazel/output_base/external/pthreadpool/include/pthreadpool.h ${D}/${includedir}/
+
         install -d ${D}${libdir}/pkgconfig
         install -m 644 ${WORKDIR}/tensorflow2-lite-2.14.0.pc ${D}${libdir}/pkgconfig/tensorflow2-lite.pc
 
