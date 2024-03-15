@@ -24,6 +24,7 @@ RDEPENDS:${PN} += " \
 TF_TARGET_EXTRA += " \
         tensorflow/lite/delegates/utils/nnapi_external_delegate:nnapi_external_delegate.so \
         tensorflow/lite/delegates/utils/gpu_external_delegate:gpu_external_delegate.so \
+        tensorflow/lite/c:libtensorflowlite_c.so \
 "
 
 TF_ARGS_EXTRA += " \
@@ -39,6 +40,9 @@ do_install:append() {
         install -m 644 ${S}/bazel-bin/tensorflow/lite/delegates/utils/nnapi_external_delegate/nnapi_external_delegate.so \
                 ${D}${libdir}
 
+	install -m 644 ${S}/bazel-bin/tensorflow/lite/c/libtensorflowlite_c.so \
+                ${D}${libdir}
+
         #install python label_image script
         install -d ${D}${datadir}/label_image
         install -m 644 ${S}/tensorflow/lite/examples/python/label_image.py \
@@ -47,6 +51,13 @@ do_install:append() {
         #install headers
         cd "${S}/tensorflow/"
         for file in $(find . -name '*.h'); do
+                install -d "${D}${includedir}/tensorflow/$(dirname -- "${file}")"
+                install -m 0644 "${file}" "${D}${includedir}/tensorflow/${file}"
+        done
+
+        #install inc files
+	    cd "${S}/tensorflow/"
+        for file in $(find . -name '*.inc'); do
                 install -d "${D}${includedir}/tensorflow/$(dirname -- "${file}")"
                 install -m 0644 "${file}" "${D}${includedir}/tensorflow/${file}"
         done
