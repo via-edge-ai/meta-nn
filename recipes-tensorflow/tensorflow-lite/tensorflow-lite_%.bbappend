@@ -11,6 +11,10 @@ SRC_URI += " \
            file://0001-add-cutom-ops.patch \
            file://tensorflow2-lite-2.14.0.pc \
            file://0001-Ensure-that-we-don-t-try-to-link-against-lnativewind.patch \
+           file://add_delegate_params_to_TfLiteSettings_v2.patch \
+           file://temp_modify_configuration_generated_v2.patch \
+           file://0001-tflite-update-opaque-api.patch \
+           file://0001-tflite-add-mtk-neuron-delegate.patch \
 "
 
 DEPENDS += "virtual/libegl \
@@ -24,6 +28,7 @@ RDEPENDS:${PN} += " \
 TF_TARGET_EXTRA += " \
         tensorflow/lite/delegates/utils/nnapi_external_delegate:nnapi_external_delegate.so \
         tensorflow/lite/delegates/utils/gpu_external_delegate:gpu_external_delegate.so \
+        tensorflow/lite/delegates/utils/neuron_stable_delegate:neuron_stable_delegate \
         tensorflow/lite/c:libtensorflowlite_c.so \
 "
 
@@ -38,6 +43,9 @@ do_install:append() {
                 ${D}${libdir}
 
         install -m 644 ${S}/bazel-bin/tensorflow/lite/delegates/utils/nnapi_external_delegate/nnapi_external_delegate.so \
+                ${D}${libdir}
+
+        install -m 644 ${S}/bazel-bin/tensorflow/lite/delegates/utils/neuron_stable_delegate/libneuron_stable_delegate.so \
                 ${D}${libdir}
 
 	install -m 644 ${S}/bazel-bin/tensorflow/lite/c/libtensorflowlite_c.so \
