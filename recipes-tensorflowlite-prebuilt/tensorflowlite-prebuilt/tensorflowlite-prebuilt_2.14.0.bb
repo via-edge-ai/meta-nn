@@ -16,8 +16,8 @@ RDEPENDS:${PN} += " \
     python3-pillow \
 "
 
-SRCREV = "bdf2128a2cb37803e81894fc94ddbffcc3275e51"
-BRANCH = "v2_10_0"
+SRCREV = "41e7858c052fe70b8996a17b8837487f01a5605e"
+BRANCH = "V2_14_0"
 TFLITE_ENABLE_XNNPACK = "0"
 
 SRC_URI += "${AIOT_RITY_URI}/tensorflowlite-prebuilt.git;protocol=https;branch=${BRANCH} \
