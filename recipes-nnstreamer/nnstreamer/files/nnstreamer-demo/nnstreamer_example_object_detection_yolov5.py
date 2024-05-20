@@ -85,7 +85,7 @@ class Demo:
       cmd += f'textoverlay name=info text="" font-desc=Sans,18 valignment=top ! '
 
     if self.cam_type == 'uvc':
-      cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="waylandsink sync=false qos=false fullscreen={self.FULLSCREEN} "'
+      cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="waylandsink sync=false qos=false fullscreen={self.FULLSCREEN}"'
     else:
       cmd += f'fpsdisplaysink name=sink text-overlay=false signal-fps-measurements=true sync=false video-sink="glimagesink sync=false qos=false" '
 
@@ -98,7 +98,7 @@ class Demo:
 
     if engine == 'neuronsdk':
       tensor = dla_converter(self.tflite_model, self.dla)
-      cmd += f'tensor_filter framework=neuronsdk throughput={self.THROUGHPUT} name=nn model={self.dla} inputtype=uint8 input=3:320:320:1 outputtype=uint8 output=85:6300:1 ! '
+      cmd += f'tensor_filter framework=neuronsdk throughput={self.THROUGHPUT} name=nn model={self.dla} {tensor} ! '
     elif engine == 'tflite':
       cpu_cores = find_cpu_cores()
       cmd += f'tensor_filter framework=tensorflow-lite throughput={self.THROUGHPUT} name=nn model={self.tflite_model} custom=NumThreads:{cpu_cores} ! '
