@@ -1,0 +1,353 @@
+From 0709b2177b64e0ca721d8961d2bc458024104212 Mon Sep 17 00:00:00 2001
+From: JoyingKyc <joying.kuo@mediatek.com>
+Date: Tue, 28 May 2024 15:23:36 +0800
+Subject: [PATCH] nnstreamer: Add Support for TFLite stable delegate
+
+Signed-off-by: JoyingKyc <joying.kuo@mediatek.com>
+---
+ ext/nnstreamer/tensor_filter/meson.build      |  18 ++-
+ .../tensor_filter_tensorflow_lite.cc          | 139 +++++++++++++++++-
+ 2 files changed, 153 insertions(+), 4 deletions(-)
+
+diff --git a/ext/nnstreamer/tensor_filter/meson.build b/ext/nnstreamer/tensor_filter/meson.build
+index 6c54b22d..40b1a1d4 100644
+--- a/ext/nnstreamer/tensor_filter/meson.build
++++ b/ext/nnstreamer/tensor_filter/meson.build
+@@ -259,6 +259,18 @@ if tflite2_support_is_available
+     tflite2_compile_args += '-DTFLITE_EXTERNAL_DELEGATE_SUPPORTED'
+   endif
+ 
++ ## stable delegate
++  if cxx.links('''
++      #include <tensorflow/lite/acceleration/configuration/c/delegate_plugin.h>
++      #include <tensorflow/lite/acceleration/configuration/c/stable_delegate.h>
++      #include <tensorflow/lite/acceleration/configuration/configuration_generated.h>
++      #include <tensorflow/lite/delegates/utils/experimental/stable_delegate/delegate_loader.h>
++      #include <tensorflow/lite/delegates/utils/experimental/stable_delegate/tflite_settings_json_parser.h>
++      int main() {return 0;}
++    ''', dependencies : [tflite2_support_deps, libdl_dep], name : 'stable delegate')
++    tflite2_compile_args += '-DTFLITE_STABLE_DELEGATE_SUPPORTED'
++  endif
++
+   tflite2_custom_compile_args = tflite2_compile_args
+   tflite2_compile_args += '-DTFLITE_SUBPLUGIN_NAME="tensorflow2-lite"'
+ 
+@@ -269,12 +281,16 @@ if tflite2_support_is_available
+   nnstreamer_filter_tflite2_deps += tflite2_extra_dep
+   nnstreamer_filter_tflite2_deps += tflite2_ver_dep
+ 
++  delegate_loader_lib =  cc.find_library('libdelegate_loader')
++  json_parser_lib =  cc.find_library('libtflite_settings_json_parser')
++  flatbuffer_lib =  cc.find_library('flatbuffers')
+   shared_library('nnstreamer_filter_tensorflow2-lite',
+     filter_sub_tflite2_sources,
+-    dependencies: nnstreamer_filter_tflite2_deps,
++    dependencies: [nnstreamer_filter_tflite2_deps, json_parser_lib, delegate_loader_lib, flatbuffer_lib],
+     install: true,
+     install_dir: filter_subplugin_install_dir
+   )
++  
+ 
+   static_library('nnstreamer_filter_tensorflow2-lite',
+     filter_sub_tflite2_sources,
+diff --git a/ext/nnstreamer/tensor_filter/tensor_filter_tensorflow_lite.cc b/ext/nnstreamer/tensor_filter/tensor_filter_tensorflow_lite.cc
+index 07dc9f41..4d75f527 100644
+--- a/ext/nnstreamer/tensor_filter/tensor_filter_tensorflow_lite.cc
++++ b/ext/nnstreamer/tensor_filter/tensor_filter_tensorflow_lite.cc
+@@ -85,6 +85,23 @@
+ #  endif
+ #endif
+ 
++#ifdef TFLITE_STABLE_DELEGATE_SUPPORTED
++#  if USE_TENSORFLOW2_HEADER_PATH
++#    include <tensorflow/lite/acceleration/configuration/c/delegate_plugin.h>
++#    include <tensorflow/lite/acceleration/configuration/c/stable_delegate.h>
++#    include <tensorflow/lite/acceleration/configuration/configuration_generated.h>
++#    include <tensorflow/lite/delegates/utils/experimental/stable_delegate/delegate_loader.h>
++#    include <tensorflow/lite/delegates/utils/experimental/stable_delegate/tflite_settings_json_parser.h>
++#  else
++#    include <tensorflow/lite/acceleration/configuration/c/delegate_plugin.h>
++#    include <tensorflow/lite/acceleration/configuration/c/stable_delegate.h>
++#    include <tensorflow/lite/acceleration/configuration/configuration_generated.h>
++#    include <tensorflow/lite/delegates/utils/experimental/stable_delegate/delegate_loader.h>
++#    include <tensorflow/lite/delegates/utils/experimental/stable_delegate/tflite_settings_json_parser.h>
++#  endif
++#endif
++
++
+ #if !defined(TFLITE_SUBPLUGIN_NAME)
+ #warning "The sub-plugin name for tensorflow-lite is not defined."
+ #define TFLITE_SUBPLUGIN_NAME "tensorflow-lite"
+@@ -113,6 +130,7 @@ typedef enum {
+   TFLITE_DELEGATE_NNAPI,
+   TFLITE_DELEGATE_XNNPACK,
+   TFLITE_DELEGATE_EXTERNAL,
++  TFLITE_DELEGATE_STABLE,
+ 
+   TFLITE_DELEGATE_MAX
+ } tflite_delegate_e;
+@@ -126,6 +144,7 @@ typedef struct {
+   tflite_delegate_e delegate; /**< tensorflow-lite delegate */
+   gint num_threads; /**< the number of threads */
+   const gchar *ext_delegate_path; /**< path to external delegate lib */
++  const gchar *stable_delegate_setting_file_path; /**< path to stable delegate setting file */
+   GHashTable *ext_delegate_kv_table; /**< external delegate key values options */
+   int debug_level;
+ } tflite_option_s;
+@@ -149,6 +168,8 @@ static GstTensorFilterFrameworkStatistics tflite_internal_stats = {
+   .total_overhead_latency = 0,
+ };
+ 
++
++
+ /**
+  * @brief Wrapper class for TFLite Interpreter to support model switching
+  */
+@@ -168,6 +189,7 @@ class TFLiteInterpreter
+   void setModelPath (const char *model_path);
+   void setExtDelegate (const char *lib_path, GHashTable *key_val);
+   void getExtDelegate (const char **lib_path, GHashTable **key_val);
++  void setStaDelegate (const char *setting_path);
+   /** @brief get current model path */
+   const char *getModelPath ()
+   {
+@@ -220,7 +242,9 @@ class TFLiteInterpreter
+   bool is_cached_after_first_invoke; /**< To cache again after first invoke */
+   bool is_xnnpack_delegated; /**< To check if XNNPACK delegate is used */
+   char *ext_delegate_path; /**< path to external delegate lib */
++  char *stable_delegate_setting_file_path; /**< path to stable delegate setting file */
+   GHashTable *ext_delegate_kv_table; /**< external delegate key values options */
++
+   int debug_level;
+   std::unique_ptr<tflite::Interpreter> interpreter;
+   std::unique_ptr<tflite::FlatBufferModel> model;
+@@ -282,6 +306,32 @@ void init_filter_tflite (void) __attribute__ ((constructor));
+ void fini_filter_tflite (void) __attribute__ ((destructor));
+ }
+ 
++// Class that encapulates the stable delegate cache management.
++class StableDelegatePluginLoader {
++ public:
++  // Returns a singleton instance of this class.
++  static StableDelegatePluginLoader& GetInstance() {
++    static StableDelegatePluginLoader* const instance =
++        new StableDelegatePluginLoader;
++    return *instance;
++  }
++
++ private:
++  struct CacheEntry {
++    const TfLiteStableDelegate* stable_delegate = nullptr;
++    tflite::delegates::utils::TfLiteSettingsJsonParser parser;  // Owns parsed_settings.
++    const tflite::TFLiteSettings* parsed_settings = nullptr;
++  };
++
++  StableDelegatePluginLoader() = default;
++  const CacheEntry* LoadStableDelegatePlugin(
++      const std::string& json_settings_file_path);
++
++  std::map<std::string /*settings_file_path*/, CacheEntry> cache_;
++  
++  friend class TFLiteInterpreter;
++};
++
+ G_LOCK_DEFINE_STATIC (slock);
+ 
+ /**
+@@ -295,6 +345,8 @@ TFLiteInterpreter::TFLiteInterpreter ()
+   model_path = nullptr;
+   ext_delegate_path = nullptr;
+   ext_delegate_kv_table = nullptr;
++  stable_delegate_setting_file_path = nullptr;
++
+   debug_level = 0;
+ 
+   g_mutex_init (&mutex);
+@@ -314,9 +366,12 @@ TFLiteInterpreter::~TFLiteInterpreter ()
+   g_mutex_clear (&mutex);
+   g_free (model_path);
+   g_free (ext_delegate_path);
++ 
+   if (ext_delegate_kv_table)
+     g_hash_table_unref(ext_delegate_kv_table);
+ 
++  g_free (stable_delegate_setting_file_path);
++
+   gst_tensors_info_free (&inputTensorMeta);
+   gst_tensors_info_free (&outputTensorMeta);
+ }
+@@ -526,12 +581,12 @@ TFLiteInterpreter::loadModel (int num_threads, tflite_delegate_e delegate_e)
+     case TFLITE_DELEGATE_EXTERNAL:
+     {
+ #ifdef TFLITE_EXTERNAL_DELEGATE_SUPPORTED
+-      TfLiteExternalDelegateOptions options;
++      TfLiteExternalDelegateOptions options; //include  ./delegates/external/external_delegate.h
+ 
+       options = TfLiteExternalDelegateOptionsDefault (ext_delegate_path);
+ 
+       /* Add optional key values to delegate configuration */
+-      if (ext_delegate_kv_table) {
++      if (ext_delegate_kv_table) { //insted of use emplace back, here use the gstremer data structure to save option
+         GHashTable *table = ext_delegate_kv_table;
+         GHashTableIter iter;
+         gchar *key, *value;
+@@ -541,7 +596,7 @@ TFLiteInterpreter::loadModel (int num_threads, tflite_delegate_e delegate_e)
+            options.insert (&options, key, value);
+       }
+ 
+-      delegate = TfLiteExternalDelegateCreate (&options);
++      delegate = TfLiteExternalDelegateCreate (&options); //./delegates/external/external_delegate.h
+       void (* deleter) (TfLiteDelegate *) =
+               [] (TfLiteDelegate *delegate_) {
+                   TfLiteExternalDelegateDelete (delegate_);
+@@ -550,6 +605,25 @@ TFLiteInterpreter::loadModel (int num_threads, tflite_delegate_e delegate_e)
+       setDelegate (delegate, deleter);
+ #else
+       ml_logw ("NNStreamer was built without external delegate. Given delegate option external is ignored.");
++#endif
++      break;
++    }
++    case TFLITE_DELEGATE_STABLE:
++    {
++
++#ifdef TFLITE_STABLE_DELEGATE_SUPPORTED 
++
++      const StableDelegatePluginLoader::CacheEntry* entry =
++          StableDelegatePluginLoader::GetInstance().LoadStableDelegatePlugin(
++          stable_delegate_setting_file_path);
++      const TfLiteOpaqueDelegatePlugin* delegate_plugin =
++          entry->stable_delegate->delegate_plugin;
++
++    setDelegate (delegate_plugin->create(entry->parsed_settings), delegate_plugin->destroy);
++
++#else
++      ml_logw ("NNStreamer was built without stable delegate. Given delegate option external is ignored.");
++
+ #endif
+       break;
+     }
+@@ -807,6 +881,20 @@ TFLiteInterpreter::getExtDelegate (const char **lib_path, GHashTable **key_val)
+   *key_val = ext_delegate_kv_table;
+ }
+ 
++
++/**
++ * @brief update the stable delegate setting file path
++ */
++void
++TFLiteInterpreter::setStaDelegate (const char *_setting_path)
++{
++  if (_setting_path) {
++    g_free (stable_delegate_setting_file_path);
++    stable_delegate_setting_file_path = g_strdup (_setting_path);
++  }
++}
++
++
+ /**
+  * @brief cache input and output tensor ptr before invoke
+  * @return 0 on success. -errno on failure.
+@@ -979,6 +1067,7 @@ TFLiteCore::init (tflite_option_s *option)
+ {
+   interpreter->setModelPath (option->model_file);
+   interpreter->setExtDelegate (option->ext_delegate_path, option->ext_delegate_kv_table);
++  interpreter->setStaDelegate (option->stable_delegate_setting_file_path);
+   num_threads = option->num_threads;
+   debug_level = option->debug_level;
+   int err;
+@@ -1259,6 +1348,37 @@ TFLiteCore::cacheInOutTensorPtr ()
+   return err;
+ }
+ 
++const
++StableDelegatePluginLoader::CacheEntry*
++StableDelegatePluginLoader::LoadStableDelegatePlugin(
++    const std::string& json_settings_file_path) {
++  auto it = cache_.find(json_settings_file_path);
++  if (it != cache_.end()) {
++    return &it->second;
++  }
++  CacheEntry result;
++  const tflite::TFLiteSettings* tflite_settings =
++      result.parser.Parse(json_settings_file_path);
++  result.parsed_settings = tflite_settings;
++  if (!tflite_settings || !tflite_settings->stable_delegate_loader_settings() ||
++      !tflite_settings->stable_delegate_loader_settings()->delegate_path()) {
++    ml_loge ("Invalid TFLiteSettings for the stable delegate.\n");
++    result.stable_delegate = nullptr;
++  } else {
++    std::string delegate_path =
++        tflite_settings->stable_delegate_loader_settings()
++            ->delegate_path()
++            ->str();
++    result.stable_delegate =
++        tflite::delegates::utils::LoadDelegateFromSharedLibrary(delegate_path);
++    if (!result.stable_delegate || !result.stable_delegate->delegate_plugin) {
++      //ml_loge ("Failed to load stable ABI delegate from stable ABI delegate binary (%s).\n", delegate_path);
++    }
++  }
++  auto it2 = cache_.emplace(json_settings_file_path, std::move(result)).first;
++  return &it2->second;
++}
++
+ /**
+  * @brief Internal function to get the option for tf-lite model.
+  */
+@@ -1275,6 +1395,7 @@ tflite_parseCustomOption (const GstTensorFilterProperties *prop, tflite_option_s
+   option->debug_level = 0;
+   option->ext_delegate_path = nullptr;
+   option->ext_delegate_kv_table = nullptr;
++  option->stable_delegate_setting_file_path = nullptr;
+ 
+   if (prop->custom_properties) {
+     gchar **strv;
+@@ -1301,6 +1422,8 @@ tflite_parseCustomOption (const GstTensorFilterProperties *prop, tflite_option_s
+             option->delegate = TFLITE_DELEGATE_XNNPACK;
+           else if (g_ascii_strcasecmp (pair[1], "External") == 0)
+             option->delegate = TFLITE_DELEGATE_EXTERNAL;
++          else if (g_ascii_strcasecmp (pair[1], "Stable") == 0)
++            option->delegate = TFLITE_DELEGATE_STABLE;
+           else
+             ml_logw ("Unknown option to set tensorflow-lite delegate (%s).", pair[1]);
+         } else if (g_ascii_strcasecmp (pair[0], "ExtDelegateLib") == 0) {
+@@ -1328,6 +1451,8 @@ tflite_parseCustomOption (const GstTensorFilterProperties *prop, tflite_option_s
+             g_strfreev (kv);
+           }
+           g_strfreev (kvpairs);
++        } else if(g_ascii_strcasecmp (pair[0], "StaDelegateSettingFile") == 0) {
++          option->stable_delegate_setting_file_path = g_strdup (pair[1]);
+         } else if (g_ascii_strcasecmp (pair[0], "debug") == 0) {
+ 			option->debug_level = 1;
+         } else {
+@@ -1345,6 +1470,10 @@ tflite_parseCustomOption (const GstTensorFilterProperties *prop, tflite_option_s
+       && option->ext_delegate_path == NULL) {
+     ml_logw ("No shared lib for external delegate.");
+     option->delegate = TFLITE_DELEGATE_NONE;
++  } else if (option->delegate == TFLITE_DELEGATE_STABLE
++      && option->stable_delegate_setting_file_path == NULL) {
++    ml_logw ("No setting file for stable delegate.");
++    option->delegate = TFLITE_DELEGATE_NONE;
+   }
+ 
+   return 0;
+@@ -1424,6 +1553,9 @@ done:
+     g_hash_table_unref (option.ext_delegate_kv_table);
+   option.ext_delegate_kv_table = nullptr;
+ 
++  g_free ((gpointer) option.stable_delegate_setting_file_path);
++  option.stable_delegate_setting_file_path = nullptr;
++
+   return ret;
+ }
+ 
+@@ -1659,6 +1791,7 @@ init_filter_tflite (void)
+       "ExtDelegateLib", "Path to external delegate shared library",
+       "ExtDelegateKeyVal", "key/values pairs optional parameters for delegate."
+       " Format ExtDelegateKeyVal=key1#value1;key2#value2...",
++      "StaDelegateSettingFile", "Path to stable delegate setting file",
+       NULL);
+ }
+ 
+-- 
+2.18.0
+

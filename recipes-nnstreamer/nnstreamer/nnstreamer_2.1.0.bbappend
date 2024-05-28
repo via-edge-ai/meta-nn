@@ -14,6 +14,7 @@ SRC_URI:append = " \
        file://sample_1x4x4x4_two_input_two_output.tflite \
        file://nnstreamer-demo \
        file://0008-nnstreamer-Update-neuron-delegate-version-to-6.3.3.patch \
+       file://0001-nnstreamer-Add-Support-for-TFLite-stable-delegate.patch \
 "
 
 # Flags to check if neuron is available on current platform
