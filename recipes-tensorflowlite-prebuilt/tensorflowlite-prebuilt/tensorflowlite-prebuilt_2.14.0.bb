@@ -16,7 +16,7 @@ RDEPENDS:${PN} += " \
     python3-pillow \
 "
 
-SRCREV = "827c68b208df638ce68479798b78ba9ed9d812c9"
+SRCREV = "42a6b69d811e0582cc6bf5a19ace86c22dd2e64d"
 BRANCH = "V2_14_0"
 TFLITE_ENABLE_XNNPACK = "0"
 
