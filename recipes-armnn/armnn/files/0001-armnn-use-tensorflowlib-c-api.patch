@@ -1,4 +1,4 @@
-From 6005a553674bb9a761685443c62a20f4dc0d7eed Mon Sep 17 00:00:00 2001
+From 0b25f214a6cb0439c1fc2e5583d844c41d58c0db Mon Sep 17 00:00:00 2001
 From: Pedro Tsai <pedro.tsai@mediatek.com>
 Date: Fri, 8 Mar 2024 16:04:37 -0800
 Subject: [PATCH] armnn-use-tensorflowlib-c-api
@@ -336,6 +336,3 @@ index 6521e7c30..be7424041 100644
                                           ${Flatbuffers_LIB}
                                           ${CMAKE_THREAD_LIBS_INIT}
                                           ${CMAKE_DL_LIBS})
--- 
-2.43.0
-
